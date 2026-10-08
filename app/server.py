@@ -1,20 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-hx 有机合成工具 —— 本地服务主程序（外壳）
+Retron 有机合成工作台 —— 本地服务主程序
 ==========================================
 提供：
   1. 本地网页界面（web/ 目录，含 Ketcher 画板、runtime 动态文件）
   2. POST /api/convert —— 结构/名称/分子式 相互转换（RDKit + 中文名典 + OPSIN）
   3. POST /api/retro   —— 逆合成路线设计（AiZynthFinder 常驻 worker，模型只加载一次）
      GET  /api/retro/status?task_id=xxx —— 查询逆合成任务进度
-  4. POST /api/ocr     —— 图片识别分子（本地 MolScribe/DECIMER 引擎）
-  5. POST /api/mol     —— MOL 文本 -> SMILES（接住其他化学软件复制来的分子）
-  6. GET  /api/health  —— 自检
+  4. POST /api/forward —— 正向反应预测（ReactionT5v2，独立环境）
+  5. POST /api/conditions —— 反应条件补全（文献先例检索 + 命名反应规则）
+  6. POST /api/ocr     —— 图片识别分子（本地 MolScribe/DECIMER 引擎）
+  7. POST /api/mol     —— MOL 文本 -> SMILES（接住其他化学软件复制来的分子）
+  8. GET  /api/health  —— 自检
+  9. GET  /api/shutdown —— 由桌面外壳调用，用于退出时清理进程
 
 铁律：完全本地运行、断网可用、不访问任何外网。
-启动方式（推荐）：项目根目录双击「启动.bat」
-手动：tools\\venv\\Scripts\\python.exe app\\server.py
+所有跨环境子进程一律以 NO_WINDOW 方式启动（不弹控制台窗口）。
+启动方式：双击 Retron\\Retron.exe（外壳会自动在后台拉起本服务）
+手动启动：tools\\venv\\Scripts\\pythonw.exe app\\server.py
 """
 import base64
 import json
@@ -48,6 +52,11 @@ LOG_FILE = os.path.join(LOG_DIR, "server.log")
 
 PORT = 8765
 MAX_IMAGE_BYTES = 40 * 1024 * 1024   # 图片上限 40MB
+
+# Windows 下本服务由无控制台的 pythonw 启动；子进程若不显式禁止，
+# 系统会为每一个子进程新建一个黑色控制台窗口（用户能看到的"黑窗"）。
+# 因此：本文件里所有 subprocess 调用都必须带上 NO_WINDOW。
+NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
 
 # 让控制台打印中文不出错
 try:
@@ -104,7 +113,8 @@ def _run_cli_tool(python_exe, cli_path, args, timeout=120, tag=""):
         proc = subprocess.run(
             [python_exe, cli_path] + args,
             capture_output=True, text=True, encoding="utf-8",
-            errors="replace", timeout=timeout)
+            errors="replace", timeout=timeout,
+            creationflags=NO_WINDOW)
     except subprocess.TimeoutExpired:
         return {"ok": False, "error": "计算超时（%d 秒）" % timeout}
     except Exception as e:
@@ -205,6 +215,7 @@ class RetroWorker:
                 errors="replace",
                 bufsize=1,
                 cwd=os.path.dirname(RETRO_WORKER),
+                creationflags=NO_WINDOW,
             )
         except Exception as e:
             self.error = "逆合成引擎启动失败：%s" % e
@@ -602,6 +613,7 @@ class Handler(BaseHTTPRequestHandler):
                         capture_output=True, text=True,
                         encoding="utf-8", errors="replace",
                         timeout=180,
+                        creationflags=NO_WINDOW,
                     )
                     res = None
                     for line in reversed((proc.stdout or "").splitlines()):
