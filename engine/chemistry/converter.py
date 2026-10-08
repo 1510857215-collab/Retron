@@ -138,9 +138,24 @@ def _resolve_smiles(input_text, input_type):
         return canon, name, "中文名典 %s（%s）" % (kind, src)
 
     if input_type == "name_en":
+        # 先查词典：覆盖英文俗名 / 商品名 / 常用缩写（aspirin、paracetamol、THF、DMSO、TNT…）
+        # 这里用 fuzzy=False：只做「精确 + 前缀」等走索引的查询，避免对几百万条别名做慢扫描；
+        # 英文俗名基本都能精确命中，命中不了的多半是 IUPAC 系统名，交给下面的 OPSIN 更合适。
+        hits = dict_query.search(text, fuzzy=False)
+        if hits:
+            name, smiles, src, _note = hits[0]
+            canon = _canonical(smiles)
+            if canon is not None:
+                exact = (name == text)
+                kind = "精确匹配" if exact else "匹配到「%s」" % name
+                return canon, name, "中文名典 %s（%s）" % (kind, src)
+
+        # 词典没有 → 交给 IUPAC 系统命名解析器（OPSIN）
         smi = _opsin_to_smiles(text)
         if not smi:
-            raise ValueError("OPSIN 无法解析该英文名「%s」，请检查拼写或改用结构式（SMILES）。" % text)
+            raise ValueError(
+                "无法识别英文名「%s」：词典未收录该俗名，系统命名解析也没能识别。\n"
+                "请检查拼写，或改用结构式（SMILES）。" % text)
         canon = _canonical(smi)
         if canon is None:
             raise ValueError("OPSIN 返回的结构无法解析，请改用结构式（SMILES）。")
