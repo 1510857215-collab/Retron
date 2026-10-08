@@ -33,8 +33,7 @@ Retron/
 │   ├── make_dist.py
 │   └── requirements/        dependency snapshots
 ├── 使用说明.md
-├── 首次使用必读.txt
-└── 蓝图.md
+└── 首次使用必读.txt
 ```
 
 The shell locates the project root by searching upward from `Retron.exe` for a directory containing both `app/server.py` and `tools/python311/python.exe`. Keep this layout when assembling your own build.

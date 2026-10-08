@@ -22,7 +22,7 @@ licenses. All copyrights belong to their respective authors.
 
 - `web/ketcher/` contains a build of **Ketcher** (Apache License 2.0). A Chinese
   interface string table has been applied on top of the upstream build. The
-  patched build is reproducible with the script in `tools/archived-scripts/`.
+  patched build is reproducible with `tools/build_ketcher_zh.mjs`.
 - The distributed build additionally bundles Python 3.11 and the third-party
   packages listed in `tools/requirements/requirements-*.txt`. Each package
   remains under its own license; the full text of those licenses is available in
