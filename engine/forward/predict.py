@@ -22,7 +22,7 @@ engine/forward/predict.py —— 正向反应预测引擎（完全本地、离�
   —— 绝不抛未捕获异常。
 
 【必须用专用环境运行】
-  C:\\Users\\zzl\\Desktop\\hx\\tools\\venv-forward\\Scripts\\python.exe
+  tools\\venv-forward\\Scripts\\python.exe
 """
 import os
 import re

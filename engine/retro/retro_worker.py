@@ -14,7 +14,7 @@ retro_worker.py —— 逆合成常驻 worker（供 app/server.py 调用）
   启动完成后先输出一行：{"ready": true} 或 {"ready": false, "error": "..."}
 
 【重要】必须用专用环境运行：
-  C:\\Users\\zzl\\Desktop\\hx\\tools\\venv-retro\\Scripts\\python.exe
+  tools\\venv-retro\\Scripts\\python.exe
 """
 import json
 import os

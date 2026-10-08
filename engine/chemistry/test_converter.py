@@ -5,7 +5,7 @@ test_converter.py —— 转换引擎自测脚本
 
 不依赖任何测试框架，纯标准库断言，直接用项目 venv 运行：
 
-    C:\\Users\\zzl\\Desktop\\hx\\tools\\venv\\Scripts\\python.exe test_converter.py
+    tools\\venv\\Scripts\\python.exe test_converter.py
 
 覆盖 convert() 的每个方向（≥2 用例/方向）与错误分支，合计 ≥12 个用例。
 """

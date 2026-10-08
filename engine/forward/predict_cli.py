@@ -14,7 +14,7 @@ engine/forward/predict_cli.py —— 正向反应预测命令行入口（供主�
 退出码：ok=0；失败=1（JSON 仍会打印到 stdout）
 
 【必须用专用环境运行】
-  C:\\Users\\zzl\\Desktop\\hx\\tools\\venv-forward\\Scripts\\python.exe predict_cli.py ...
+  tools\\venv-forward\\Scripts\\python.exe predict_cli.py ...
 """
 import json
 import os

@@ -4,7 +4,7 @@
 ocr_cli.py —— 图片识别引擎的命令行包装（供 app/server.py 跨环境调用）
 ======================================================================
 【重要】必须用独立环境运行：
-    C:\\Users\\zzl\\Desktop\\hx\\tools\\venv-vision\\Scripts\\python.exe
+    tools\\venv-vision\\Scripts\\python.exe
 
 用法:  python ocr_cli.py <图片路径>
 输出:  stdout 最后一行 JSON：

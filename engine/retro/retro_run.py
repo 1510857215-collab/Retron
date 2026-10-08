@@ -4,7 +4,7 @@
 ====================================================================
 【重要】本脚本必须使用专用环境解释器运行：
 
-    C:\\Users\\zzl\\Desktop\\hx\\tools\\venv-retro\\Scripts\\python.exe
+    tools\\venv-retro\\Scripts\\python.exe
 
 因为 aizynthfinder 及其依赖（onnxruntime / rdkit 等）只装在该 venv 里。
 

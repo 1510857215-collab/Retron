@@ -4,7 +4,7 @@
 
 【运行环境 —— 必须遵守】
     本文件必须用独立环境 tools\\venv-vision 的 python 运行，例如：
-        C:\\Users\\zzl\\Desktop\\hx\\tools\\venv-vision\\Scripts\\python.exe
+        tools\\venv-vision\\Scripts\\python.exe
     不要用主环境 tools\\venv（那边没有装识别模型）。
 
 【对外接口】
@@ -23,7 +23,7 @@
 【维护须知（改引擎相关代码前先读）】
     1. MolScribe 包已按本机环境打过补丁，直接放在 venv 的 site-packages/molscribe 下，
        补丁内容：augment.py 兼容 albumentations 2.x、transformer/__init__ 容忍死的 swin 模块导入；
-       源码留档在 tools\\tmp\\vision_molscribe_src（补丁后的最新版以 site-packages 为准）。
+       补丁后的版本已直接应用于运行环境（site-packages）。
     2. venv 的 site-packages/torchtext 是"空桩"，仅为让 OpenNMT-py(2.2.0) 的 import 链通过，
        不含任何真实功能——不要拿它当真正的 torchtext 用。
     3. timm 必须保持 0.4.12（MolScribe 的 vendored swin 依赖它注册 'swin_base'）。
