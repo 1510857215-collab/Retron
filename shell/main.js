@@ -293,15 +293,25 @@ function ensureDesktopShortcut() {
     }
     if (!fs.existsSync(desktop)) { return; }
     const lnkPath = path.join(desktop, 'Retron.lnk');
-    if (fs.existsSync(lnkPath)) { return; }
-    shell.writeShortcutLink(lnkPath, 'create', {
+
+    // 已有快捷方式：指向本程序就保留；指向别处（如旧的安装位置）就更新它
+    if (fs.existsSync(lnkPath)) {
+      try {
+        const cur = shell.readShortcutLink(lnkPath);
+        if (cur && cur.target &&
+            path.resolve(cur.target).toLowerCase() === path.resolve(process.execPath).toLowerCase()) {
+          return;
+        }
+      } catch (e) { /* 读取失败 → 当作需要重建 */ }
+    }
+    shell.writeShortcutLink(lnkPath, fs.existsSync(lnkPath) ? 'replace' : 'create', {
       target: process.execPath,
       cwd: path.dirname(process.execPath),
       description: 'Retron 有机合成工作台',
       icon: process.execPath,
       iconIndex: 0
     });
-    console.log('已创建桌面快捷方式: ' + lnkPath);
+    console.log('桌面快捷方式已就绪: ' + lnkPath);
   } catch (e) {
     // 创建失败不影响启动
   }
