@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>hx 自测（不对外）</title>
+</head>
+<body>
+<div id="R" style="font-family:Consolas,monospace;font-size:13px;white-space:pre-wrap;padding:8px;">PENDING</div>
+<iframe id="f" src="./index.html" style="width:1500px;height:900px;border:1px solid #ccc;"></iframe>
+<script>
+(function () {
+  var log = [];
+  function step(s) {
+    log.push(s);
+    document.getElementById('R').textContent = 'RESULT||' + log.join(' ;; ');
+    document.title = 'R' + log.length;
+  }
+  window.onerror = function (msg) { step('JS-ERROR|' + msg); };
+  var f = document.getElementById('f');
+
+  function idoc() { return f.contentWindow.document; }
+
+  function getKetcher() {
+    try {
+      var iw = idoc().getElementById('board');
+      if (!iw) return null;
+      var w = iw.contentWindow;
+      if (!w) return null;
+      return w.ketcher || null;
+    } catch (e) { return null; }
+  }
+
+  function waitFor(cond, timeoutMs, cb) {
+    var t0 = Date.now();
+    (function loop() {
+      var v = null;
+      try { v = cond(); } catch (e) {}
+      if (v) { cb(v); return; }
+      if (Date.now() - t0 > timeoutMs) { cb(null); return; }
+      setTimeout(loop, 400);
+    })();
+  }
+
+  function firePaste(el, dt) {
+    var ev = new Event('paste', { bubbles: true, cancelable: true });
+    try { Object.defineProperty(ev, 'clipboardData', { value: dt }); } catch (e) {}
+    el.dispatchEvent(ev);
+  }
+
+  step('START');
+  waitFor(getKetcher, 90000, function (k) {
+    if (!k) { step('ALL-FAIL|画板90秒未就绪'); step('DONE'); return; }
+    step('画板已就绪');
+    testB();
+  });
+
+  // ---------- B：图片粘贴 -> OCR ----------
+  function testB() {
+    fetch('./runtime/selftest_molecule.png')
+      .then(function (r) { return r.blob(); })
+      .then(function (blob) {
+        var file = new File([blob], 't.png', { type: 'image/png' });
+        var dt = new DataTransfer();
+        dt.items.add(file);
+        var ta = idoc().getElementById('retro-input');
+        ta.focus();
+        firePaste(ta, dt);
+        step('B-SENT|已投递图片粘贴，等待识别…');
+        var t0 = Date.now();
+        (function pollB() {
+          var v = ta.value || '';
+          if (v.length > 2) { step('B-PASS|图片识别=' + v); testC(); return; }
+          if (Date.now() - t0 > 120000) { step('B-FAIL|120秒无结果，值:[' + v + ']'); testC(); return; }
+          setTimeout(pollB, 2000);
+        })();
+      })
+      .catch(function (e) { step('B-FAIL|fetch图失败: ' + e); testC(); });
+  }
+
+  // ---------- C：MOL 文本粘贴 -> SMILES ----------
+  function testC() {
+    var mol = [
+      '',
+      '     RDKit          2D',
+      '',
+      '  3  2  0  0  0  0  0  0  0  0999 V2000',
+      '    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0',
+      '    1.2990    0.7500    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0',
+      '    2.5981   -0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0',
+      '  1  2  1  0',
+      '  2  3  1  0',
+      'M  END',
+      ''
+    ].join('\n');
+    var dt = new DataTransfer();
+    dt.setData('text/plain', mol);
+    var ta = idoc().getElementById('conv-input');
+    ta.value = '';
+    firePaste(ta, dt);
+    step('C-SENT|已投递 MOL 文本');
+    var t0 = Date.now();
+    (function pollC() {
+      var v = ta.value || '';
+      if (v) { step('C-PASS|MOL->SMILES=' + v); testA(); return; }
+      if (Date.now() - t0 > 20000) { step('C-FAIL|20秒无结果'); testA(); return; }
+      setTimeout(pollC, 1000);
+    })();
+  }
+
+  // ---------- A：画板取结构（最后测，确保画板编辑器完全就绪） ----------
+  function testA() {
+    var k = getKetcher();
+    if (!k) { step('A-FAIL|画板对象丢失'); step('DONE'); return; }
+    Promise.resolve(k.setMolecule('c1ccccc1')).then(function () {}).catch(function (e) {
+      step('A-INFO|setMolecule err: ' + e);
+    });
+    step('A-SENT|已画上苯环，等待…');
+    setTimeout(function () {
+      Promise.resolve(k.getSmiles()).then(function (direct) {
+        direct = direct || '';
+        var btn = idoc().getElementById('btn-conv-board');
+        btn.click();
+        setTimeout(function () {
+          var v = idoc().getElementById('conv-input').value || '';
+          var box = (idoc().getElementById('conv-result').textContent || '').slice(0, 80);
+          step('A-INFO|直接读画板=[' + direct + '] | 按钮后输入框=[' + v + '] | 结果区=[' + box + ']');
+          if (v && v.indexOf('c1ccccc1') >= 0) step('A-PASS|画板取结构成功');
+          else if (!direct) step('A-FAIL|画板本身为空（setMolecule未生效）');
+          else step('A-FAIL|画板有内容但按钮未取到');
+          step('DONE');
+        }, 4000);
+      }).catch(function (e) { step('A-FAIL|getSmiles err: ' + e); step('DONE'); });
+    }, 6000);
+  }
+})();
+</script>
+</body>
+</html>

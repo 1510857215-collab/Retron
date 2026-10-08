@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ketcher 画板 · 离线自测</title>
+<link rel="stylesheet" href="./ketcher/ketcher-app.css">
+<style>
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
+    background: #f4f6f8;
+    color: #1f2329;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* 顶部工具条 */
+  .tb {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 14px;
+    background: #ffffff;
+    border-bottom: 1px solid #dcdfe6;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
+    z-index: 10;
+  }
+  .tb h1 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 8px 0 0;
+    white-space: nowrap;
+  }
+  .tb .spacer { flex: 1 1 auto; }
+
+  button {
+    font: inherit;
+    font-size: 14px;
+    padding: 6px 16px;
+    border-radius: 6px;
+    border: 1px solid #167782;
+    background: #167782;
+    color: #fff;
+    cursor: pointer;
+  }
+  button:hover:not(:disabled) { background: #0f5c65; border-color: #0f5c65; }
+  button:disabled { background: #c8ccd4; border-color: #c8ccd4; cursor: not-allowed; }
+
+  #status {
+    font-size: 13px;
+    color: #8a8f99;
+    white-space: nowrap;
+  }
+  #status.ok { color: #1a9c5b; }
+  #status.err { color: #d02b2b; }
+
+  /* 画板 */
+  .board {
+    flex: 1 1 auto;
+    min-height: 0;
+    position: relative;
+    background: #ffffff;
+  }
+  #ketcher-root {
+    position: absolute;
+    inset: 0;
+  }
+  #loader {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    color: #5b6077;
+    background: #ffffff;
+  }
+
+  /* 底部结果区 */
+  .out {
+    flex: 0 0 auto;
+    border-top: 1px solid #dcdfe6;
+    background: #ffffff;
+    padding: 8px 14px 12px;
+  }
+  .out label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #4b5563;
+  }
+  #smiles {
+    width: 100%;
+    box-sizing: border-box;
+    height: 62px;
+    resize: vertical;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 8px 10px;
+    border: 1px solid #dcdfe6;
+    border-radius: 6px;
+    background: #fbfcfd;
+    color: #1f2329;
+  }
+</style>
+</head>
+<body>
+
+  <div class="tb">
+    <h1>Ketcher 画板 · 离线自测</h1>
+    <button id="btn-smiles" disabled>导出 SMILES</button>
+    <span id="status">正在加载画板…</span>
+    <span class="spacer"></span>
+  </div>
+
+  <div class="board">
+    <div id="ketcher-root"></div>
+    <div id="loader">正在加载画板（首次加载需解析本地引擎文件，请稍候）…</div>
+  </div>
+
+  <div class="out">
+    <label for="smiles">当前结构的 SMILES（点击「导出 SMILES」后显示）</label>
+    <textarea id="smiles" readonly placeholder="（尚未导出）"></textarea>
+  </div>
+
+  <script src="./ketcher/ketcher-zh2.js"></script>
+
+  <script>
+  (function () {
+    var btn = document.getElementById('btn-smiles');
+    var out = document.getElementById('smiles');
+    var status = document.getElementById('status');
+    var loader = document.getElementById('loader');
+
+    function setStatus(text, cls) {
+      status.textContent = text;
+      status.className = cls || '';
+    }
+
+    function ready() {
+      if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
+      btn.disabled = false;
+      setStatus('画板就绪', 'ok');
+    }
+
+    // ketcher-app.js 初始化完成时会派发该事件，并挂载 window.ketcher
+    document.addEventListener('ketcher-ready', ready);
+
+    // 兜底：若事件早于本脚本执行（正常不会），直接看标记
+    if (window.__ketcherReady && window.ketcher) {
+      ready();
+    }
+
+    btn.addEventListener('click', function () {
+      if (!window.ketcher) {
+        setStatus('画板尚未就绪', 'err');
+        return;
+      }
+      btn.disabled = true;
+      setStatus('正在导出…');
+      Promise.resolve(window.ketcher.getSmiles())
+        .then(function (smiles) {
+          out.value = smiles || '';
+          setStatus(smiles ? '已导出 SMILES' : '画板是空的', smiles ? 'ok' : '');
+          btn.disabled = false;
+        })
+        .catch(function (err) {
+          console.error(err);
+          out.value = '';
+          setStatus('导出失败：' + (err && err.message ? err.message : err), 'err');
+          btn.disabled = false;
+        });
+    });
+  })();
+  </script>
+
+</body>
+</html>

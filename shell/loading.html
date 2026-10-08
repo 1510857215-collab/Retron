@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Retron</title>
+<style>
+  html, body {
+    height: 100%; margin: 0;
+    background-color: #0a0d13;
+    background-image:
+      radial-gradient(900px 500px at 20% -10%, #1b2a49 0%, transparent 55%),
+      radial-gradient(800px 500px at 110% 20%, #2b1d40 0%, transparent 52%);
+    color: #e9ecf4;
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+    gap: 20px; user-select: none;
+  }
+  .logo { font-size: 44px; font-weight: 600; letter-spacing: 2px; }
+  .logo span {
+    font-size: 15px; font-weight: 400; color: #98a2b8;
+    margin-left: 12px; letter-spacing: 1px;
+  }
+  .tip { font-size: 13.5px; color: #98a2b8; }
+  .dots::after { content: ''; animation: dots 1.6s steps(4, end) infinite; }
+  @keyframes dots { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } }
+</style>
+</head>
+<body>
+  <div class="logo">Retron<span>有机合成工作台</span></div>
+  <div class="tip">正在启动本地引擎<span class="dots"></span></div>
+</body>
+</html>

@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retron · 有机合成工作台</title>
+<style>
+  :root {
+    --glass: rgba(255, 255, 255, .065);
+    --glass-brd: rgba(255, 255, 255, .12);
+    --txt: #e9ecf4;
+    --txt-dim: #98a2b8;
+    --accent: #6ea8fe;
+    --ok: #4ade80;
+    --warn: #fbbf24;
+    --err: #f87171;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", system-ui, sans-serif;
+    color: var(--txt);
+    background:
+      radial-gradient(1100px 650px at 12% -8%, #1b2a49 0%, transparent 55%),
+      radial-gradient(950px 580px at 108% 12%, #2b1d40 0%, transparent 52%),
+      radial-gradient(850px 850px at 52% 125%, #0f2b30 0%, transparent 55%),
+      #0a0d13;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  /* ---------- 顶栏 ---------- */
+  .topbar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 18px;
+    background: rgba(255, 255, 255, .045);
+    backdrop-filter: blur(22px) saturate(150%);
+    -webkit-backdrop-filter: blur(22px) saturate(150%);
+    border-bottom: 1px solid rgba(255, 255, 255, .07);
+  }
+  .logo { font-size: 16px; font-weight: 600; letter-spacing: .3px; }
+  .logo .sub { font-size: 12px; font-weight: 400; color: var(--txt-dim); margin-left: 8px; }
+  .spacer { flex: 1; }
+  .status { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--txt-dim); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #8a93a6; box-shadow: 0 0 8px transparent; }
+  .dot.on { background: var(--ok); box-shadow: 0 0 9px rgba(74, 222, 128, .8); }
+  .dot.err { background: var(--err); box-shadow: 0 0 9px rgba(248, 113, 113, .8); }
+
+  /* ---------- 主区 ---------- */
+  .main { flex: 1; display: flex; gap: 12px; padding: 12px; min-height: 0; }
+
+  .board-card {
+    flex: 1;
+    min-width: 0;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid var(--glass-brd);
+    box-shadow: 0 10px 36px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .06);
+    background: #fff;
+    position: relative;
+  }
+  .board-card iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+  /* ================= 右侧：标签页式功能区 ================= */
+  .side {
+    flex: 0 0 430px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+  }
+
+  .tabs { display: flex; gap: 6px; flex: 0 0 auto; }
+  .tab {
+    flex: 1; font: inherit; font-size: 13px;
+    padding: 9px 0; border-radius: 12px;
+    background: rgba(255, 255, 255, .05);
+    border: 1px solid rgba(255, 255, 255, .12);
+    color: var(--txt-dim); cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .tab:hover { background: rgba(255, 255, 255, .1); }
+  .tab.active {
+    background: rgba(110, 168, 254, .18);
+    border-color: rgba(110, 168, 254, .45);
+    color: #dbe9ff; font-weight: 600;
+    box-shadow: 0 0 14px rgba(110, 168, 254, .18);
+  }
+
+  .panel { display: none; flex: 1; min-height: 0; }
+  .panel.active { display: flex; }
+
+  .card {
+    background: var(--glass);
+    backdrop-filter: blur(26px) saturate(150%);
+    -webkit-backdrop-filter: blur(26px) saturate(150%);
+    border: 1px solid var(--glass-brd);
+    border-radius: 18px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, .32), inset 0 1px 0 rgba(255, 255, 255, .07);
+  }
+  .panel-card {
+    flex: 1; min-height: 0;
+    display: flex; flex-direction: column;
+    padding: 14px 15px 12px;
+  }
+  .panel-inputs { flex: 0 0 auto; }
+  .panel-results {
+    flex: 1; min-height: 0;
+    overflow-y: auto;
+    margin-top: 10px;
+    padding-right: 2px;
+  }
+  .panel-results::-webkit-scrollbar { width: 8px; }
+  .panel-results::-webkit-scrollbar-thumb { background: rgba(255,255,255,.14); border-radius: 8px; }
+  .panel-results::-webkit-scrollbar-track { background: transparent; }
+
+  .row { display: flex; gap: 8px; margin-bottom: 9px; }
+  .row:last-child { margin-bottom: 0; }
+  .row > * { min-width: 0; }
+  .grow { flex: 1; }
+
+  textarea, input[type="text"], input[type="number"], select {
+    width: 100%;
+    background: rgba(0, 0, 0, .28);
+    border: 1px solid rgba(255, 255, 255, .13);
+    border-radius: 11px;
+    color: var(--txt);
+    font: inherit;
+    font-size: 13px;
+    padding: 8px 11px;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  textarea { resize: vertical; min-height: 54px; font-family: Consolas, "Courier New", monospace; }
+  textarea:focus, input:focus, select:focus {
+    border-color: rgba(110, 168, 254, .65);
+    box-shadow: 0 0 0 3px rgba(110, 168, 254, .16);
+  }
+  select option { background: #171c28; color: var(--txt); }
+  label.lbl { display: block; font-size: 11.5px; color: var(--txt-dim); margin: 2px 2px 5px; }
+  .paste-hint { font-size: 11px; color: #7f89a0; margin: 5px 2px 0; line-height: 1.5; }
+
+  button {
+    font: inherit; font-size: 13px;
+    color: var(--txt);
+    background: rgba(110, 168, 254, .14);
+    border: 1px solid rgba(110, 168, 254, .38);
+    border-radius: 11px;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: background .15s, box-shadow .15s, opacity .15s;
+    white-space: nowrap;
+  }
+  button:hover:not(:disabled) { background: rgba(110, 168, 254, .26); box-shadow: 0 0 14px rgba(110, 168, 254, .25); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button.ghost { background: rgba(255, 255, 255, .06); border-color: rgba(255, 255, 255, .16); }
+  button.ghost:hover:not(:disabled) { background: rgba(255, 255, 255, .12); box-shadow: none; }
+
+  .link-btn {
+    font-size: 12px; color: #8fb4ee; cursor: pointer; user-select: none;
+    padding: 2px 2px 6px; display: inline-block;
+  }
+  .link-btn:hover { color: #bcd4ff; text-decoration: underline; }
+
+  .mini-btn {
+    font-size: 11.5px; padding: 2px 10px; border-radius: 8px; margin-left: 6px;
+    background: rgba(110, 168, 254, .12); border: 1px solid rgba(110, 168, 254, .32);
+    color: #bcd4ff; cursor: pointer; vertical-align: middle;
+  }
+  .mini-btn:hover { background: rgba(110, 168, 254, .28); }
+
+  .result { font-size: 13px; line-height: 1.65; word-break: break-all; display: none; }
+  .result.show { display: block; }
+  .result .out {
+    background: rgba(0, 0, 0, .3); border: 1px solid rgba(255, 255, 255, .1);
+    border-radius: 11px; padding: 9px 11px;
+    font-family: Consolas, "Courier New", monospace; font-size: 13.5px;
+    user-select: text; cursor: text;
+  }
+  .result .src { color: var(--txt-dim); font-size: 11.5px; margin-top: 6px; }
+  .result .errbox { color: #ffc9c9; background: rgba(248, 113, 113, .1); border: 1px solid rgba(248, 113, 113, .3); border-radius: 11px; padding: 8px 11px; }
+  .result .busy { color: var(--warn); }
+  .result .okline { color: var(--ok); font-size: 12.5px; margin-bottom: 6px; }
+
+  .route {
+    background: rgba(255, 255, 255, .045);
+    border: 1px solid rgba(255, 255, 255, .1);
+    border-radius: 12px; padding: 9px 11px; margin-top: 8px;
+    font-size: 12.5px; line-height: 1.7;
+  }
+  .route .rtitle { font-weight: 600; color: #cfe0ff; margin-bottom: 4px; }
+  .route .rstep { font-family: Consolas, "Courier New", monospace; font-size: 12px; word-break: break-all; color: #cdd6e4; margin-top: 2px; }
+  .route .rstep .arrow { color: var(--accent); }
+  .route img {
+    width: 100%; border-radius: 10px; margin: 6px 0; background: #fff;
+    cursor: zoom-in; display: block;
+  }
+  .route details { margin-top: 5px; }
+  .route summary { cursor: pointer; color: var(--txt-dim); font-size: 11.5px; }
+  .route pre {
+    margin-top: 5px; max-height: 260px; overflow: auto;
+    background: rgba(0,0,0,.35); border-radius: 8px; padding: 8px;
+    font-size: 11px; line-height: 1.5;
+  }
+  .tag-ok {
+    font-size: 10.5px; color: #7ee2a8; border: 1px solid rgba(74,222,128,.4);
+    border-radius: 7px; padding: 0 6px; margin-left: 4px; font-weight: 400;
+  }
+  .cond-box {
+    font-size: 11.5px; color: #9fb4d8; margin: 2px 0 4px 6px;
+    line-height: 1.6; min-height: 14px;
+  }
+
+  .foot { text-align: center; color: #6d7689; font-size: 11px; flex: 0 0 auto; padding-bottom: 2px; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo">Retron <span class="sub">有机合成工作台</span></div>
+  <div class="spacer"></div>
+  <div class="status"><span class="dot" id="svc-dot"></span><span id="svc-text">连接中…</span></div>
+</header>
+
+<main class="main">
+  <section class="board-card">
+    <iframe id="board" src="./board.html" title="结构式画板"></iframe>
+  </section>
+
+  <aside class="side">
+
+    <div class="tabs">
+      <button class="tab active" data-tab="conv">转换</button>
+      <button class="tab" data-tab="retro">逆合成</button>
+      <button class="tab" data-tab="fwd">预测</button>
+    </div>
+
+    <!-- ============ 转换 ============ -->
+    <section class="panel active" id="panel-conv">
+      <div class="card panel-card">
+        <div class="panel-inputs">
+          <label class="lbl">输入（结构式 / 中文名 / 英文名）</label>
+          <textarea id="conv-input" placeholder="例：阿司匹林 / aspirin / CC(=O)Oc1ccccc1C(=O)O"></textarea>
+          <div class="paste-hint">Ctrl+V 支持：粘贴图片自动识别 / 其他软件复制的分子</div>
+          <div class="row" style="margin-top:9px;">
+            <select id="conv-type" title="输入类型">
+              <option value="auto">自动识别</option>
+              <option value="name_zh">中文名</option>
+              <option value="name_en">英文名</option>
+              <option value="smiles">结构式 SMILES</option>
+            </select>
+            <select id="conv-target" title="转换为">
+              <option value="smiles">转为 SMILES</option>
+              <option value="formula">转为分子式</option>
+              <option value="name_zh">转为中文名</option>
+              <option value="inchi">转为 InChI</option>
+            </select>
+          </div>
+          <div class="row">
+            <button class="ghost" id="btn-conv-board">从画板取结构</button>
+            <button class="grow" id="btn-conv">转 换</button>
+          </div>
+        </div>
+        <div class="panel-results"><div class="result" id="conv-result"></div></div>
+      </div>
+    </section>
+
+    <!-- ============ 逆合成 ============ -->
+    <section class="panel" id="panel-retro">
+      <div class="card panel-card">
+        <div class="panel-inputs">
+          <label class="lbl">目标分子（SMILES / 画板 / 图片）</label>
+          <textarea id="retro-input" placeholder="例：CC(=O)Oc1ccccc1C(=O)O （阿司匹林）"></textarea>
+          <div class="paste-hint">Ctrl+V 支持：粘贴图片自动识别；也可以从画板取或粘贴其他软件的分子</div>
+          <div class="row" style="margin-top:9px;">
+            <button class="ghost" id="btn-retro-board">从画板取结构（目标分子）</button>
+          </div>
+          <span class="link-btn" id="retro-start-toggle">+ 指定起始物料（可选：从某个原料 A 出发合成）</span>
+          <div class="row" id="retro-start-wrap" style="display:none; margin-bottom:9px;">
+            <input type="text" id="retro-start" placeholder="起始物料 SMILES，例：O=C(O)c1ccccc1O（水杨酸）">
+            <button class="ghost" id="btn-retro-start-board">从画板取</button>
+          </div>
+          <div class="row" style="align-items:center;">
+            <label class="lbl" style="margin:0 0 0 2px; white-space:nowrap;">最多步数</label>
+            <input type="number" id="retro-steps" value="3" min="1" max="6" style="width:64px; flex:0 0 64px;">
+            <button class="grow" id="btn-retro">设计路线</button>
+          </div>
+        </div>
+        <div class="panel-results"><div class="result" id="retro-result"></div></div>
+      </div>
+    </section>
+
+    <!-- ============ 预测（正向预测 + 条件补全） ============ -->
+    <section class="panel" id="panel-fwd">
+      <div class="card panel-card">
+        <div class="panel-inputs">
+          <label class="lbl">反应物（多个用英文句点分隔）</label>
+          <textarea id="fwd-input" placeholder="例：CC(=O)OC(C)=O.O=C(O)c1ccccc1O （乙酸酐 + 水杨酸）"></textarea>
+          <div class="paste-hint">Ctrl+V 支持：粘贴图片自动识别；多个反应物用 . 分隔</div>
+          <div class="row" style="margin-top:9px;">
+            <button class="ghost" id="btn-fwd-board">从画板取结构</button>
+            <input type="text" id="fwd-cond" placeholder="可选：试剂 SMILES（不清楚就留空）" style="flex:1;">
+          </div>
+          <label class="lbl">目标产物（选填 —— 填上它，就能给这个反应「补全条件」）</label>
+          <input type="text" id="fwd-product" placeholder="例：CC(=O)Oc1ccccc1C(=O)O （阿司匹林）">
+          <div class="row" style="margin-top:9px;">
+            <button class="grow" id="btn-fwd">预测可能产物</button>
+            <button class="grow" id="btn-fwd-cond">补全反应条件</button>
+          </div>
+        </div>
+        <div class="panel-results"><div class="result" id="fwd-result"></div></div>
+      </div>
+    </section>
+
+    <div class="foot">完全本地运行 · 断网可用 · 数据不出本机</div>
+  </aside>
+</main>
+
+<script>
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+  var board = $('#board');
+  var currentRetroTaskId = null;
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+  function showBox(box, html) { box.className = 'result show'; box.innerHTML = html; }
+  function cleanSmiles(s) {
+    return String(s == null ? '' : s).replace(/:\d+\]/g, ']');
+  }
+
+  // ---------------- 标签页切换 ----------------
+  var tabs = document.querySelectorAll('.tab');
+  Array.prototype.forEach.call(tabs, function (t) {
+    t.addEventListener('click', function () {
+      Array.prototype.forEach.call(tabs, function (x) { x.classList.remove('active'); });
+      var panels = document.querySelectorAll('.panel');
+      Array.prototype.forEach.call(panels, function (p) { p.classList.remove('active'); });
+      t.classList.add('active');
+      var panel = document.getElementById('panel-' + t.getAttribute('data-tab'));
+      if (panel) { panel.classList.add('active'); }
+    });
+  });
+
+  // ---------------- 起始物料展开/收起 ----------------
+  var startTog = document.getElementById('retro-start-toggle');
+  var startWrap = document.getElementById('retro-start-wrap');
+  if (startTog && startWrap) {
+    startTog.addEventListener('click', function () {
+      var open = startWrap.style.display !== 'none';
+      startWrap.style.display = open ? 'none' : 'flex';
+      startTog.textContent = open
+        ? '+ 指定起始物料（可选：从某个原料 A 出发合成）'
+        : '− 收起起始物料';
+    });
+  }
+
+  // ---------------- 画板交互 ----------------
+  function boardSmiles(maxWaitMs) {
+    return new Promise(function (resolve, reject) {
+      var t0 = Date.now();
+      (function attempt() {
+        var w = board.contentWindow;
+        if (w && w.ketcher) {
+          Promise.resolve(w.ketcher.getSmiles())
+            .then(function (s) { resolve((s == null ? '' : String(s)).trim()); })
+            .catch(reject);
+          return;
+        }
+        if (Date.now() - t0 > (maxWaitMs || 12000)) {
+          reject(new Error('画板还在加载，请等画板显示出来再试'));
+          return;
+        }
+        setTimeout(attempt, 400);
+      })();
+    });
+  }
+
+  function fillFromBoard(textarea, btn, resultBox) {
+    var old = btn.textContent;
+    btn.disabled = true; btn.textContent = '读取中…';
+    boardSmiles().then(function (s) {
+      btn.disabled = false; btn.textContent = old;
+      if (!s) {
+        if (resultBox) { showBox(resultBox, '<div class="busy">画板是空的：请先在左边画一个分子，再点「从画板取结构」。</div>'); }
+        else { alert('画板是空的，请先画一个结构'); }
+        return;
+      }
+      textarea.value = s;
+      textarea.focus();
+      if (resultBox) { showBox(resultBox, '<div class="okline">✔ 已从画板取到结构，继续下一步操作即可。</div>'); }
+    }).catch(function (e) {
+      btn.disabled = false; btn.textContent = old;
+      if (resultBox) { showBox(resultBox, '<div class="errbox">读取画板失败：' + esc(e && e.message ? e.message : e) + '</div>'); }
+      else { alert('读取画板失败：' + (e && e.message ? e.message : e)); }
+    });
+  }
+
+  // ---------------- 智能粘贴（图片识别 / MOL 文本 / 普通文本） ----------------
+  function setupSmartPaste(textarea, resultBox) {
+    textarea.addEventListener('paste', function (e) {
+      var cd = e.clipboardData;
+      if (!cd) return;
+
+      var imgFile = null;
+      var items = cd.items || [];
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].kind === 'file' && items[i].type && items[i].type.indexOf('image/') === 0) {
+          imgFile = items[i].getAsFile();
+          break;
+        }
+      }
+      if (imgFile) {
+        e.preventDefault();
+        showBox(resultBox, '<div class="busy">收到图片，正在识别分子…（首次需加载模型，约 10~30 秒）</div>');
+        var fr = new FileReader();
+        fr.onload = function () {
+          fetch('/api/ocr', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: String(fr.result || '') })
+          }).then(function (r) { return r.json(); }).then(function (j) {
+            if (j.ok) {
+              textarea.value = j.smiles;
+              textarea.focus();
+              showBox(resultBox, '<div class="okline">✔ 图片识别成功（引擎：' + esc(j.engine || '') + '）：' + esc(j.smiles) + '</div>');
+            } else {
+              showBox(resultBox, '<div class="errbox">图片识别失败：' + esc(j.error || '') + '</div>');
+            }
+          }).catch(function (err) {
+            showBox(resultBox, '<div class="errbox">识别请求失败：' + esc(String(err)) + '</div>');
+          });
+        };
+        fr.readAsDataURL(imgFile);
+        return;
+      }
+
+      var text = (cd.getData && cd.getData('text/plain')) || '';
+      if (text && (text.indexOf('M  END') >= 0 || text.indexOf('V2000') >= 0 || text.indexOf('V3000') >= 0)) {
+        e.preventDefault();
+        showBox(resultBox, '<div class="busy">检测到 MOL 格式，正在转换为分子…</div>');
+        fetch('/api/mol', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mol: text })
+        }).then(function (r) { return r.json(); }).then(function (j) {
+          if (j.ok) {
+            textarea.value = j.smiles;
+            textarea.focus();
+            showBox(resultBox, '<div class="okline">✔ 已接住其他软件的分子：' + esc(j.smiles) + '</div>');
+          } else {
+            showBox(resultBox, '<div class="errbox">' + esc(j.error || 'MOL 转换失败') + '</div>');
+          }
+        }).catch(function (err) {
+          showBox(resultBox, '<div class="errbox">请求失败：' + esc(String(err)) + '</div>');
+        });
+      }
+    });
+  }
+
+  // ---------------- 服务状态 ----------------
+  function health() {
+    fetch('/api/health').then(function (r) { return r.json(); }).then(function (j) {
+      var d = $('#svc-dot'), t = $('#svc-text');
+      d.className = 'dot on';
+      var retro = j.retro || {};
+      var rt = retro.process || '未启动';
+      if (retro.ready) rt = '已就绪';
+      t.textContent = '服务正常 · 逆合成引擎：' + rt;
+    }).catch(function () {
+      $('#svc-dot').className = 'dot err';
+      $('#svc-text').textContent = '服务未连接';
+    });
+  }
+  setInterval(health, 15000);
+  health();
+
+  // ---------------- 转换 ----------------
+  function guessType(t) {
+    if (/[\u4e00-\u9fff]/.test(t)) return 'name_zh';
+    if (/[=#@\[\]]/.test(t)) return 'smiles';
+    if (/[A-Za-z]/.test(t) && /[0-9]/.test(t)) return 'smiles';
+    if (/^[A-Za-z][A-Za-z\-\s,0-9]*$/.test(t)) return 'name_en';
+    return 'smiles';
+  }
+
+  function doConvert() {
+    var input = $('#conv-input').value.trim();
+    var resultBox = $('#conv-result');
+    if (!input) { showBox(resultBox, '<div class="errbox">请先输入内容（或粘贴图片）</div>'); return; }
+    var sel = $('#conv-type').value;
+    var target = $('#conv-target').value;
+    var guesses;
+    if (sel === 'auto') {
+      var g = guessType(input);
+      guesses = (g === 'name_en') ? ['name_en', 'smiles'] : [g];
+    } else {
+      guesses = [sel];
+    }
+    var btn = $('#btn-conv');
+    btn.disabled = true;
+    showBox(resultBox, '<div class="busy">转换中…</div>');
+
+    function tryNext(i) {
+      if (i >= guesses.length) {
+        btn.disabled = false;
+        showBox(resultBox, '<div class="errbox">没有找到可识别的类型。试试把输入类型手动选成「结构式 SMILES」。</div>');
+        return;
+      }
+      var itype = guesses[i];
+      fetch('/api/convert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: input, input_type: itype, target: target })
+      }).then(function (r) { return r.json(); }).then(function (j) {
+        if (j.ok) {
+          btn.disabled = false;
+          var typeName = { smiles: '结构式', formula: '分子式', name_zh: '中文名', name_en: '英文名' }[itype] || itype;
+          showBox(resultBox,
+            '<div class="out" title="点击可全选">' + esc(j.output) + '</div>' +
+            '<div class="src">' + esc(j.source || '') + ' ｜ 识别为：' + typeName + '</div>');
+          var outEl = resultBox.querySelector('.out');
+          if (outEl) outEl.addEventListener('click', function () { window.getSelection().selectAllChildren(outEl); });
+        } else {
+          if (i + 1 < guesses.length) { tryNext(i + 1); }
+          else {
+            btn.disabled = false;
+            showBox(resultBox, '<div class="errbox">' + esc(j.error || '转换失败') + '</div>');
+          }
+        }
+      }).catch(function (e) {
+        btn.disabled = false;
+        showBox(resultBox, '<div class="errbox">请求失败：' + esc(String(e)) + '</div>');
+      });
+    }
+    tryNext(0);
+  }
+
+  // ---------------- 逆合成 ----------------
+  var retroTimer = null;
+
+  function doRetro() {
+    var smiles = $('#retro-input').value.trim();
+    var startEl = $('#retro-start');
+    var startMaterial = startEl ? startEl.value.trim() : '';
+    var resultBox = $('#retro-result');
+    if (!smiles) { showBox(resultBox, '<div class="errbox">请先输入目标分子（SMILES / 画板 / 图片都行）</div>'); return; }
+    var steps = parseInt($('#retro-steps').value || '3', 10);
+    var btn = $('#btn-retro');
+    btn.disabled = true;
+    showBox(resultBox, '<div class="busy">已提交，正在计算…（首次运行需要加载模型，可能要 1~3 分钟，请耐心等待）</div>');
+
+    fetch('/api/retro', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ smiles: smiles, max_steps: steps, start_material: startMaterial })
+    }).then(function (r) { return r.json(); }).then(function (j) {
+      if (!j.ok) {
+        btn.disabled = false;
+        showBox(resultBox, '<div class="errbox">' + esc(j.error || '提交失败') + '</div>');
+        return;
+      }
+      currentRetroTaskId = j.task_id;
+      pollRetro(j.task_id, btn, Date.now());
+    }).catch(function (e) {
+      btn.disabled = false;
+      showBox(resultBox, '<div class="errbox">请求失败：' + esc(String(e)) + '</div>');
+    });
+  }
+
+  function pollRetro(taskId, btn, t0) {
+    if (retroTimer) clearInterval(retroTimer);
+    retroTimer = setInterval(function () {
+      fetch('/api/retro/status?task_id=' + encodeURIComponent(taskId))
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (!j.ok) {
+            clearInterval(retroTimer); btn.disabled = false;
+            showBox($('#retro-result'), '<div class="errbox">' + esc(j.error || '查询失败') + '</div>');
+            return;
+          }
+          var sec = Math.round(j.elapsed || ((Date.now() - t0) / 1000));
+          if (j.state === 'running') {
+            showBox($('#retro-result'), '<div class="busy">计算中… 已用时 ' + sec + ' 秒（首次运行需加载模型，请耐心等待）</div>');
+            return;
+          }
+          clearInterval(retroTimer); btn.disabled = false;
+          if (j.state === 'error') {
+            showBox($('#retro-result'), '<div class="errbox">' + esc(j.error || '计算失败') + '</div>');
+            return;
+          }
+          renderRetroResult(j.result, sec);
+        })
+        .catch(function (e) {
+          clearInterval(retroTimer); btn.disabled = false;
+          showBox($('#retro-result'), '<div class="errbox">查询失败：' + esc(String(e)) + '</div>');
+        });
+    }, 2500);
+  }
+
+  function renderRetroResult(res, sec) {
+    var resultBox = $('#retro-result');
+    if (!res) { showBox(resultBox, '<div class="errbox">没有拿到结果</div>'); return; }
+    var html = '';
+    var st = res.stats || {};
+    if (res.start_material_hint) {
+      html += '<div class="busy">⚠ ' + esc(res.start_material_hint) + '</div>';
+    } else if (res.start_material_routes && res.start_material_routes.length) {
+      html += '<div class="okline">✔ 起点约束生效：' + res.start_material_routes.length + ' 条路线经过起点。</div>';
+    }
+    if (res.is_solved) {
+      html += '<div class="okline">✔ 找到完整路线（共 ' + (res.num_routes || 0) + ' 条，用时约 ' + sec +
+        ' 秒）。点「补全条件」补上每步的试剂/溶剂/温度；点「画到画板」把结构送上画板。</div>';
+    } else {
+      html += '<div class="busy">未找到能一路推到可购买原料的完整路线。可尝试增加步数，或换一个目标分子。</div>';
+    }
+    var routes = res.routes || [];
+    for (var i = 0; i < routes.length; i++) {
+      html += renderRoute(routes[i], i);
+    }
+    if (st && Object.keys(st).length) {
+      html += '<details><summary>搜索统计</summary><pre>' + esc(JSON.stringify(st, null, 2)) + '</pre></details>';
+    }
+    showBox(resultBox, html);
+    if (res.is_solved && routes.length) {
+      setTimeout(function () { fillConditions(0); }, 1200);
+    }
+  }
+
+  function renderRoute(route, idx) {
+    var steps = [];
+
+    function walkMol(node) {
+      var kids = (node && node.children) || [];
+      for (var i = 0; i < kids.length; i++) {
+        var r = kids[i];
+        if (!r || r.type !== 'reaction') continue;
+        var rkids = r.children || [];
+        var reactantSmiles = [];
+        var info = [];
+        for (var j = 0; j < rkids.length; j++) {
+          var m = rkids[j] || {};
+          var ms = cleanSmiles(m.smiles);
+          if (ms) reactantSmiles.push(ms);
+          info.push({ smiles: ms, inStock: !!m.in_stock });
+        }
+        var product = cleanSmiles(node.smiles || '');
+        var rxnClean = reactantSmiles.join('.') + '>>' + product;
+        steps.push({
+          reactants: reactantSmiles.join(' + '),
+          product: product,
+          info: info,
+          rxnForBoard: rxnClean
+        });
+        for (var k = 0; k < rkids.length; k++) {
+          var mk = rkids[k];
+          if (mk && !mk.in_stock && (mk.children || []).length) walkMol(mk);
+        }
+      }
+    }
+    walkMol(route);
+    steps.reverse();   // 正向合成顺序（从原料到目标）
+
+    var startTag = route.with_start ? '<span class="tag-ok">✓ 经起点</span>' : '';
+    var html = '<div class="route" data-route-idx="' + idx + '">';
+    html += '<div class="rtitle">路线 ' + (idx + 1) + ' ｜ ' + steps.length + ' 步（正向合成顺序：从原料到目标）' + startTag +
+      '<button class="mini-btn" data-fill-cond="' + idx + '">补全条件</button>' +
+      '<button class="mini-btn" data-board-route="' + idx + '">整条路线画到画板</button></div>';
+
+    if (currentRetroTaskId) {
+      var imgSrc = '/runtime/' + currentRetroTaskId + '/route_' + (idx + 1) + '.png';
+      html += '<a href="' + imgSrc + '" target="_blank" title="点击看大图"><img src="' + imgSrc +
+        '" loading="lazy" alt="路线图" onerror="this.parentNode.style.display=\'none\'"></a>';
+    }
+
+    for (var i = 0; i < steps.length; i++) {
+      var st = steps[i];
+      html += '<div class="step-block" data-rxn="' + esc(st.rxnForBoard) + '" data-product="' + esc(st.product) + '">';
+      html += '<div class="rstep"><span style="color:var(--accent)">第' + (i + 1) + '步</span> ' +
+        esc(st.reactants) + ' <span class="arrow">➜</span> ' + esc(st.product) +
+        '<button class="mini-btn" data-board-step="' + idx + '|' + i + '">画到画板</button></div>';
+      if (st.info.length) {
+        html += '<div class="rstep" style="color:var(--txt-dim);font-size:11.5px">↳ 原料：' +
+          st.info.map(function (x) {
+            return esc(x.smiles) + (x.inStock ? ' <span style="color:var(--ok)">✓可购买</span>'
+              : ' <span style="color:var(--warn)">需继续合成</span>');
+          }).join(' ｜ ') + '</div>';
+      }
+      html += '<div class="cond-box"></div>';
+      html += '</div>';
+    }
+    html += '<details><summary>原始数据</summary><pre>' +
+      esc(JSON.stringify(route, null, 2).slice(0, 4000)) + '</pre></details></div>';
+    return html;
+  }
+
+  // ---------------- 条件补全（逐条异步，串行请求；复用 ensureConditionForBlock） ----------------
+  function fillConditions(idx) {
+    var routeEl = document.querySelector('.route[data-route-idx="' + idx + '"]');
+    if (!routeEl) return;
+    var blocks = routeEl.querySelectorAll('.step-block');
+    var i = 0;
+
+    function next() {
+      if (i >= blocks.length) return;
+      ensureConditionForBlock(blocks[i++]).then(function () { next(); });
+    }
+    next();
+  }
+
+  // ---------------- 正向预测 ----------------
+  function doForward() {
+    var reactants = $('#fwd-input').value.trim();
+    var conditions = $('#fwd-cond').value.trim();
+    var box = $('#fwd-result');
+    if (!reactants) { showBox(box, '<div class="errbox">请输入反应物（可 Ctrl+V 粘贴图片识别）</div>'); return; }
+    var btn = $('#btn-fwd');
+    btn.disabled = true;
+    showBox(box, '<div class="busy">预测中…（首次约 10 秒，之后 1~2 秒）</div>');
+
+    fetch('/api/forward', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reactants: reactants, conditions: conditions })
+    }).then(function (r) { return r.json(); }).then(function (j) {
+      btn.disabled = false;
+      if (!j.ok) { showBox(box, '<div class="errbox">' + esc(j.error || '预测失败') + '</div>'); return; }
+      var ps = j.products || [];
+      if (!ps.length) { showBox(box, '<div class="busy">模型没有给出候选产物</div>'); return; }
+      var html = '<div class="okline">✔ 预测到 ' + ps.length + ' 个候选产物（按可能性排序）</div>';
+      for (var i = 0; i < ps.length; i++) {
+        var p = ps[i];
+        var pct = (p.score != null) ? (' ｜ 可能性 ' + (Math.round(p.score * 1000) / 10) + '%') : '';
+        html += '<div class="route"><div class="rtitle">候选 ' + (i + 1) +
+          '<span style="color:var(--txt-dim);font-weight:400">' + pct + '</span></div>' +
+          '<div class="rstep">' + esc(p.smiles) + '</div>' +
+          '<div style="margin-top:4px">' +
+          '<button class="mini-btn" data-append-smiles="' + esc(p.smiles) + '">画到画板</button>' +
+          '<button class="mini-btn" data-set-target="' + esc(p.smiles) + '">设为逆合成目标</button>' +
+          '</div></div>';
+      }
+      if (j.notes) html += '<div class="src">' + esc(j.notes) + '</div>';
+      showBox(box, html);
+    }).catch(function (e) {
+      btn.disabled = false;
+      showBox(box, '<div class="errbox">请求失败：' + esc(String(e)) + '</div>');
+    });
+  }
+
+  // ---------------- 正向条件补全（A + B -> 条件） ----------------
+  function renderConditionHtml(j) {
+    var c = j.conditions || {};
+    var parts = [];
+    if (c.reagents && c.reagents.length) parts.push('试剂：' + c.reagents.join('、'));
+    if (c.solvents && c.solvents.length) parts.push('溶剂：' + c.solvents.join('、'));
+    if (c.catalysts && c.catalysts.length) parts.push('催化剂：' + c.catalysts.join('、'));
+    if (c.temperature) parts.push('温度：' + c.temperature);
+    var html = '<div class="okline">✔ 这个反应的建议条件（来自文献先例库）：</div>';
+    html += '<div class="out" style="font-size:12.5px; font-family:inherit">' + esc(parts.join(' ｜ ')) + '</div>';
+    if (c.text) {
+      html += '<details style="margin-top:6px"><summary style="cursor:pointer;color:var(--txt-dim);font-size:11.5px">查看详细说明</summary>' +
+        '<pre style="max-height:240px;overflow:auto;background:rgba(0,0,0,.35);border-radius:8px;padding:8px;font-size:11px;line-height:1.55;word-break:break-all;white-space:pre-wrap;margin-top:5px">' +
+        esc(c.text) + '</pre></details>';
+    }
+    return html;
+  }
+
+  function doForwardCond() {
+    var reactants = $('#fwd-input').value.trim();
+    var product = $('#fwd-product').value.trim();
+    var box = $('#fwd-result');
+    if (!reactants) { showBox(box, '<div class="errbox">请先填写反应物</div>'); return; }
+    if (!product) { showBox(box, '<div class="errbox">请填写目标产物（在"目标产物"输入框里），再点「补全反应条件」</div>'); return; }
+    var btn = $('#btn-fwd-cond');
+    btn.disabled = true;
+    showBox(box, '<div class="busy">正在补全反应条件…</div>');
+
+    fetch('/api/conditions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reaction: reactants + '>>' + product })
+    }).then(function (r) { return r.json(); }).then(function (j) {
+      btn.disabled = false;
+      if (!j.ok) { showBox(box, '<div class="errbox">补全失败：' + esc(j.error || '') + '</div>'); return; }
+      showBox(box, renderConditionHtml(j));
+    }).catch(function (e) {
+      btn.disabled = false;
+      showBox(box, '<div class="errbox">请求失败：' + esc(String(e)) + '</div>');
+    });
+  }
+
+  // ---------------- 画到画板（追加式，含条件） ----------------
+  function ensureConditionForBlock(blk) {
+    return new Promise(function (resolve) {
+      if (!blk) { resolve(null); return; }
+      var box = blk.querySelector('.cond-box');
+      var rxn = blk.getAttribute('data-rxn') || '';
+      if (!rxn) { resolve(null); return; }
+      if (box && box.getAttribute('data-filled') === '1') {
+        resolve((box.textContent || '').replace('✦ 建议条件：', '').trim());
+        return;
+      }
+      if (box) { box.textContent = '条件补全中…'; }
+      fetch('/api/conditions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reaction: rxn })
+      }).then(function (r) { return r.json(); }).then(function (j) {
+        if (j.ok) {
+          var c = j.conditions || {};
+          var parts = [];
+          if (c.reagents && c.reagents.length) parts.push('试剂：' + c.reagents.slice(0, 4).join('、'));
+          if (c.solvents && c.solvents.length) parts.push('溶剂：' + c.solvents.slice(0, 3).join('、'));
+          if (c.catalysts && c.catalysts.length) parts.push('催化：' + c.catalysts.slice(0, 3).join('、'));
+          if (c.temperature) parts.push('温度：' + c.temperature);
+          var text = parts.join(' ｜ ');
+          if (box) {
+            box.setAttribute('data-filled', '1');
+            box.innerHTML = '<span style="color:var(--ok)">✦ 建议条件：' + esc(text) + '</span>';
+          }
+          resolve(text);
+        } else {
+          if (box) { box.textContent = '条件补全失败：' + (j.error || '未知'); }
+          resolve(null);
+        }
+      }).catch(function () {
+        if (box) { box.textContent = '条件请求失败'; }
+        resolve(null);
+      });
+    });
+  }
+
+  function appendStepsToBoard(routeIdx, stepIdx, btn) {
+    var routeEl = document.querySelector('.route[data-route-idx="' + routeIdx + '"]');
+    if (!routeEl) { return; }
+    var blocks = Array.prototype.slice.call(routeEl.querySelectorAll('.step-block'));
+    var targets = (stepIdx >= 0) ? [blocks[stepIdx]].filter(Boolean) : blocks;
+    if (!targets.length) { return; }
+    var w = board.contentWindow;
+    if (!w || !w.__hxAppendItems) { alert('画板还没加载完，请等几秒再试'); return; }
+    if (btn) { btn.disabled = true; }
+
+    var items = targets.map(function (blk) {
+      var iIn = blocks.indexOf(blk);
+      return {
+        smiles: blk.getAttribute('data-rxn') || '',
+        fallback: blk.getAttribute('data-product') || '',
+        label: '路线' + (routeIdx + 1) + '·第' + (iIn + 1) + '步',
+        key: 'r' + routeIdx + '-s' + iIn,
+        condition: null
+      };
+    });
+
+    Promise.resolve(w.__hxAppendItems(items)).then(function () {
+      if (btn) { btn.disabled = false; }
+      // 逐条获取/更新每步条件（写入画板左下角记录条）
+      var chain = Promise.resolve();
+      items.forEach(function (item, k) {
+        chain = chain.then(function () {
+          return ensureConditionForBlock(targets[k]).then(function (condText) {
+            if (w.__hxSetCondition) { w.__hxSetCondition(item.key, condText); }
+          });
+        });
+      });
+      return chain;
+    }).catch(function (e) {
+      if (btn) { btn.disabled = false; }
+      alert('画到画板失败：' + (e && e.message ? e.message : e));
+    });
+  }
+
+  function singleAppend(smiles, label, btn) {
+    var w = board.contentWindow;
+    if (!w || !w.__hxAppendItems) { alert('画板还没加载完，请等几秒再试'); return; }
+    if (btn) { btn.disabled = true; }
+    Promise.resolve(w.__hxAppendItems([{
+      smiles: smiles,
+      fallback: '',
+      label: label || '结构',
+      key: 'one-' + smiles,
+      noCond: true
+    }])).then(function () {
+      if (btn) { btn.disabled = false; }
+    }).catch(function (e) {
+      if (btn) { btn.disabled = false; }
+      alert('画到画板失败：' + (e && e.message ? e.message : e));
+    });
+  }
+
+  // ---------------- 按钮事件委托（覆盖全部结果区） ----------------
+  document.querySelector('.side').addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t || !t.classList) return;
+    if (t.classList.contains('mini-btn')) {
+      if (t.hasAttribute('data-fill-cond')) {
+        fillConditions(parseInt(t.getAttribute('data-fill-cond'), 10));
+        return;
+      }
+      if (t.hasAttribute('data-set-target')) {
+        var s = t.getAttribute('data-set-target');
+        var ta = $('#retro-input');
+        ta.value = s;
+        var retroTab = document.querySelector('.tab[data-tab="retro"]');
+        if (retroTab) { retroTab.click(); }
+        ta.focus();
+        return;
+      }
+      if (t.hasAttribute('data-board-step')) {
+        var ps = t.getAttribute('data-board-step').split('|');
+        appendStepsToBoard(parseInt(ps[0], 10), parseInt(ps[1], 10), t);
+        return;
+      }
+      if (t.hasAttribute('data-board-route')) {
+        appendStepsToBoard(parseInt(t.getAttribute('data-board-route'), 10), -1, t);
+        return;
+      }
+      if (t.hasAttribute('data-append-smiles')) {
+        singleAppend(t.getAttribute('data-append-smiles'), '预测候选', t);
+        return;
+      }
+    }
+  });
+
+  // ---------------- 绑定（防御性：单个元素缺失不影响其它绑定） ----------------
+  function bind(id, fn) {
+    var el = document.getElementById(id);
+    if (el) { el.addEventListener('click', fn); }
+  }
+  bind('btn-conv', doConvert);
+  bind('btn-conv-board', function () {
+    fillFromBoard($('#conv-input'), this, $('#conv-result'));
+  });
+  bind('btn-retro', doRetro);
+  bind('btn-retro-board', function () {
+    fillFromBoard($('#retro-input'), this, $('#retro-result'));
+  });
+  bind('btn-retro-start-board', function () {
+    fillFromBoard($('#retro-start'), this, null);
+  });
+  bind('btn-fwd', doForward);
+  bind('btn-fwd-cond', doForwardCond);
+  bind('btn-fwd-board', function () {
+    fillFromBoard($('#fwd-input'), this, $('#fwd-result'));
+  });
+  setupSmartPaste($('#conv-input'), $('#conv-result'));
+  setupSmartPaste($('#retro-input'), $('#retro-result'));
+  setupSmartPaste($('#fwd-input'), $('#fwd-result'));
+})();
+</script>
+</body>
+</html>

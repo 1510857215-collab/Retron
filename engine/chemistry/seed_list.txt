@@ -1,0 +1,482 @@
+# 中文化合物名称种子清单
+# 格式：中文名|PubChem查询英文名|类别|备注(可选)
+#   中文名可用半角「;」并列多个同义名（第一个作主名，其余进 aliases 表）。
+#   例：二甲基亚砜;二甲亚砜|dimethyl sulfoxide|溶剂
+# 说明：PubChem 不支持中文名检索，故用英文名查询，回填中文名为键。
+# 以 # 开头的行与空行会被忽略。
+# ============ 溶剂 ============
+甲醇|methanol|溶剂
+乙醇|ethanol|溶剂
+1-丙醇|1-propanol|溶剂
+异丙醇|isopropyl alcohol|溶剂
+正丁醇|1-butanol|溶剂
+仲丁醇|2-butanol|溶剂
+叔丁醇|tert-butanol|溶剂
+乙二醇|ethylene glycol|溶剂
+丙二醇|propylene glycol|溶剂
+甘油|glycerol|溶剂
+丙酮|acetone|溶剂
+丁酮|2-butanone|溶剂
+甲基异丁基酮|4-methyl-2-pentanone|溶剂
+四氢呋喃|tetrahydrofuran|溶剂
+2-甲基四氢呋喃|2-methyltetrahydrofuran|溶剂
+1,4-二氧六环|1,4-dioxane|溶剂
+乙醚|diethyl ether|溶剂
+甲基叔丁基醚|tert-butyl methyl ether|溶剂
+二异丙醚|diisopropyl ether|溶剂
+二氯甲烷|dichloromethane|溶剂
+三氯甲烷|chloroform|溶剂
+四氯化碳|carbon tetrachloride|溶剂
+1,2-二氯乙烷|1,2-dichloroethane|溶剂
+氯苯|chlorobenzene|溶剂
+乙酸乙酯|ethyl acetate|溶剂
+乙酸甲酯|methyl acetate|溶剂
+乙酸丁酯|butyl acetate|溶剂
+乙腈|acetonitrile|溶剂
+丙腈|propionitrile|溶剂
+二甲基亚砜;二甲亚砜|dimethyl sulfoxide|溶剂
+N,N-二甲基甲酰胺|N,N-dimethylformamide|溶剂
+N,N-二甲基乙酰胺|N,N-dimethylacetamide|溶剂
+N-甲基吡咯烷酮|N-methyl-2-pyrrolidone|溶剂
+吡啶|pyridine|溶剂
+甲苯|toluene|溶剂
+苯|benzene|溶剂
+二甲苯|p-xylene|溶剂|近似：用对二甲苯代表；工业"二甲苯"为邻/间/对异构体混合物
+乙苯|ethylbenzene|溶剂
+正己烷|hexane|溶剂
+环己烷|cyclohexane|溶剂
+正戊烷|pentane|溶剂
+正庚烷|heptane|溶剂
+环戊烷|cyclopentane|溶剂
+硝基苯|nitrobenzene|溶剂
+二硫化碳|carbon disulfide|溶剂
+苯甲醚|anisole|溶剂
+三氟乙酸|trifluoroacetic acid|溶剂
+三氟甲磺酸|trifluoromethanesulfonic acid|溶剂
+六甲基磷酰三胺|hexamethylphosphoramide|溶剂
+碳酸二甲酯|dimethyl carbonate|溶剂
+碳酸二乙酯|diethyl carbonate|溶剂
+硝基甲烷|nitromethane|溶剂
+甲酸|formic acid|溶剂
+乙酸|acetic acid|溶剂
+丙酸|propionic acid|溶剂
+三乙胺|triethylamine|试剂
+# ============ 常用试剂 ============
+盐酸|hydrochloric acid|试剂
+硫酸|sulfuric acid|试剂
+硝酸|nitric acid|试剂
+磷酸|phosphoric acid|试剂
+氢溴酸|hydrobromic acid|试剂
+氢氟酸|hydrofluoric acid|试剂
+氢氧化钠|sodium hydroxide|试剂
+氢氧化钾|potassium hydroxide|试剂
+氢氧化钙|calcium hydroxide|试剂
+氨水|ammonia|试剂|近似：对应氨分子 NH3；市售试剂实为氨的水溶液
+碳酸钠|sodium carbonate|试剂
+碳酸氢钠|sodium bicarbonate|试剂
+碳酸钾|potassium carbonate|试剂
+碳酸铯|cesium carbonate|试剂
+碳酸锂|lithium carbonate|试剂
+碳酸钙|calcium carbonate|试剂
+氯化钠|sodium chloride|试剂
+氯化钾|potassium chloride|试剂
+氯化钙|calcium chloride|试剂
+氯化铵|ammonium chloride|试剂
+氯化锌|zinc chloride|试剂
+氯化铁|ferric chloride|试剂
+硫酸镁|magnesium sulfate|试剂
+硫酸钠|sodium sulfate|试剂
+硫酸铜|copper sulfate|试剂
+硫酸铵|ammonium sulfate|试剂
+硝酸银|silver nitrate|试剂
+硫代硫酸钠|sodium thiosulfate|试剂
+高锰酸钾|potassium permanganate|试剂
+重铬酸钾|potassium dichromate|试剂
+碘化钾|potassium iodide|试剂
+碘化钠|sodium iodide|试剂
+溴化钾|potassium bromide|试剂
+溴化钠|sodium bromide|试剂
+溴|bromine|试剂
+碘|iodine|试剂
+N,N-二异丙基乙胺|N,N-diisopropylethylamine|试剂
+二异丙基氨基锂|lithium diisopropylamide|试剂
+正丁基锂|butyllithium|试剂
+叔丁基锂|tert-butyllithium|试剂
+氢化钠|sodium hydride|试剂
+氢化铝锂|lithium aluminium hydride|试剂
+硼氢化钠|sodium borohydride|试剂
+硼氢化锂|lithium borohydride|试剂
+二异丁基氢化铝|diisobutylaluminium hydride|试剂
+甲醇钠|sodium methoxide|试剂
+乙醇钠|sodium ethoxide|试剂
+叔丁醇钾|potassium tert-butoxide|试剂
+氨基钠|sodium amide|试剂
+醋酸钠|sodium acetate|试剂
+醋酸钾|potassium acetate|试剂
+氰化钠|sodium cyanide|试剂
+氰化钾|potassium cyanide|试剂
+叠氮化钠|sodium azide|试剂
+三苯基膦|triphenylphosphine|试剂
+三丁基膦|tributylphosphine|试剂
+四(三苯基膦)钯|tetrakis(triphenylphosphine)palladium|试剂
+醋酸钯|palladium acetate|试剂
+氯化钯|palladium chloride|试剂
+雷尼镍|nickel|试剂|近似：PubChem 记录为元素镍(Ni)；实际雷尼镍为 Ni-Al 合金，无单一 SMILES
+对甲苯磺酸|p-toluenesulfonic acid|试剂
+对甲苯磺酰氯|p-toluenesulfonyl chloride|试剂
+甲磺酰氯|methanesulfonyl chloride|试剂
+氯化亚砜|thionyl chloride|试剂
+草酰氯|oxalyl chloride|试剂
+三氯化磷|phosphorus trichloride|试剂
+五氯化磷|phosphorus pentachloride|试剂
+三溴化磷|phosphorus tribromide|试剂
+N-溴代琥珀酰亚胺|N-bromosuccinimide|试剂
+N-氯代琥珀酰亚胺|N-chlorosuccinimide|试剂
+过氧化氢|hydrogen peroxide|试剂
+过氧化苯甲酰|benzoyl peroxide|试剂
+间氯过氧苯甲酸|3-chloroperoxybenzoic acid|试剂
+高碘酸钠|sodium periodate|试剂
+四氧化锇|osmium tetroxide|试剂
+四氧化钌|ruthenium tetroxide|试剂
+二环己基碳二亚胺|dicyclohexylcarbodiimide|试剂
+1-羟基苯并三唑|1-hydroxybenzotriazole|试剂
+四丁基氟化铵|tetrabutylammonium fluoride|试剂
+四丁基溴化铵|tetrabutylammonium bromide|试剂
+三甲基氯硅烷|chlorotrimethylsilane|试剂
+叔丁基二甲基氯硅烷|tert-butyldimethylsilyl chloride|试剂
+三氟甲磺酸酐|trifluoromethanesulfonic anhydride|试剂
+二碳酸二叔丁酯|di-tert-butyl dicarbonate|试剂
+六甲基二硅基氨基锂|lithium hexamethyldisilazide|试剂
+二乙氨基三氟化硫|diethylaminosulfur trifluoride|试剂
+戴斯-马丁试剂|Dess-Martin periodinane|试剂
+乙酸酐|acetic anhydride|试剂
+乙酰氯|acetyl chloride|试剂
+苯甲酰氯|benzoyl chloride|试剂
+三氯氧磷|phosphorus oxychloride|试剂
+咪唑|imidazole|试剂
+4-二甲氨基吡啶|4-dimethylaminopyridine|试剂
+# ============ 常见药物 ============
+阿司匹林;拜阿司匹灵|aspirin|药物
+布洛芬|ibuprofen|药物
+对乙酰氨基酚|acetaminophen|药物
+咖啡因|caffeine|药物
+青霉素G|penicillin G|药物
+阿莫西林|amoxicillin|药物
+氨苄青霉素|ampicillin|药物
+头孢氨苄|cephalexin|药物
+头孢克肟|cefixime|药物
+红霉素|erythromycin|药物
+四环素|tetracycline|药物
+氯霉素|chloramphenicol|药物
+链霉素|streptomycin|药物
+磺胺嘧啶|sulfadiazine|药物
+甲硝唑|metronidazole|药物
+环丙沙星|ciprofloxacin|药物
+左氧氟沙星|levofloxacin|药物
+诺氟沙星|norfloxacin|药物
+异烟肼|isoniazid|药物
+利福平|rifampicin|药物
+乙胺丁醇|ethambutol|药物
+吡嗪酰胺|pyrazinamide|药物
+吗啡|morphine|药物
+可待因|codeine|药物
+地西泮|diazepam|药物
+阿普唑仑|alprazolam|药物
+唑吡坦|zolpidem|药物
+苯巴比妥|phenobarbital|药物
+苯妥英|phenytoin|药物
+卡马西平|carbamazepine|药物
+丙戊酸|valproic acid|药物
+加巴喷丁|gabapentin|药物
+普瑞巴林|pregabalin|药物
+氟西汀|fluoxetine|药物
+舍曲林|sertraline|药物
+帕罗西汀|paroxetine|药物
+西酞普兰|citalopram|药物
+阿米替林|amitriptyline|药物
+氯丙嗪|chlorpromazine|药物
+氟哌啶醇|haloperidol|药物
+利培酮|risperidone|药物
+奥氮平|olanzapine|药物
+氯氮平|clozapine|药物
+多巴胺|dopamine|药物
+肾上腺素|epinephrine|药物
+去甲肾上腺素|norepinephrine|药物
+组胺|histamine|药物
+5-羟色胺|serotonin|药物
+乙酰胆碱|acetylcholine|药物
+左旋多巴|levodopa|药物
+萘普生|naproxen|药物
+双氯芬酸|diclofenac|药物
+吲哚美辛|indomethacin|药物
+酮洛芬|ketoprofen|药物
+塞来昔布|celecoxib|药物
+美洛昔康|meloxicam|药物
+奥美拉唑|omeprazole|药物
+埃索美拉唑|esomeprazole|药物
+雷贝拉唑|rabeprazole|药物
+西咪替丁|cimetidine|药物
+雷尼替丁|ranitidine|药物
+法莫替丁|famotidine|药物
+二甲双胍|metformin|药物
+格列本脲|glibenclamide|药物
+阿卡波糖|acarbose|药物
+辛伐他汀|simvastatin|药物
+阿托伐他汀|atorvastatin|药物
+普伐他汀|pravastatin|药物
+洛伐他汀|lovastatin|药物
+硝苯地平|nifedipine|药物
+氨氯地平|amlodipine|药物
+维拉帕米|verapamil|药物
+地尔硫卓|diltiazem|药物
+美托洛尔|metoprolol|药物
+普萘洛尔|propranolol|药物
+阿替洛尔|atenolol|药物
+卡托普利|captopril|药物
+依那普利|enalapril|药物
+氯沙坦|losartan|药物
+缬沙坦|valsartan|药物
+呋塞米|furosemide|药物
+氢氯噻嗪|hydrochlorothiazide|药物
+螺内酯|spironolactone|药物
+硝酸甘油|nitroglycerin|药物
+华法林|warfarin|药物
+氯吡格雷|clopidogrel|药物
+地高辛|digoxin|药物
+奎宁|quinine|药物
+青蒿素|artemisinin|药物
+紫杉醇|paclitaxel|药物
+吉非替尼|gefitinib|药物
+伊马替尼|imatinib|药物
+索拉非尼|sorafenib|药物
+氟尿嘧啶|fluorouracil|药物
+顺铂|cisplatin|药物
+卡铂|carboplatin|药物
+阿糖胞苷|cytarabine|药物
+甲氨蝶呤|methotrexate|药物
+环磷酰胺|cyclophosphamide|药物
+多柔比星|doxorubicin|药物
+氯雷他定|loratadine|药物
+西替利嗪|cetirizine|药物
+苯海拉明|diphenhydramine|药物
+氯苯那敏|chlorpheniramine|药物
+孟鲁司特|montelukast|药物
+沙丁胺醇|salbutamol|药物
+布地奈德|budesonide|药物
+泼尼松|prednisone|药物
+泼尼松龙|prednisolone|药物
+地塞米松|dexamethasone|药物
+氢化可的松|hydrocortisone|药物
+雌二醇|estradiol|药物
+睾酮|testosterone|药物
+黄体酮|progesterone|药物
+炔雌醇|ethinylestradiol|药物
+他莫昔芬|tamoxifen|药物
+维生素A|retinol|药物
+维生素B1|thiamine|药物
+维生素B2|riboflavin|药物
+维生素B6|pyridoxine|药物
+维生素C|ascorbic acid|药物
+维生素D3|cholecalciferol|药物
+维生素E|alpha-tocopherol|药物
+维生素K1|phylloquinone|药物
+叶酸|folic acid|药物
+烟酸|nicotinic acid|药物
+烟酰胺|nicotinamide|药物
+可可碱|theobromine|药物
+茶碱|theophylline|药物
+# ============ 经典中间体与教学常见物 ============
+苯酚|phenol|中间体
+苯甲酸|benzoic acid|中间体
+水杨酸|salicylic acid|中间体
+苯胺|aniline|中间体
+甲醛|formaldehyde|中间体
+乙醛|acetaldehyde|中间体
+丙醛|propionaldehyde|中间体
+丁醛|butyraldehyde|中间体
+苯甲醛|benzaldehyde|中间体
+肉桂醛|cinnamaldehyde|中间体
+香草醛|vanillin|中间体
+苯乙酮|acetophenone|中间体
+二苯甲酮|benzophenone|中间体
+环己酮|cyclohexanone|中间体
+环己醇|cyclohexanol|中间体
+苯乙烯|styrene|中间体
+联苯|biphenyl|中间体
+萘|naphthalene|中间体
+蒽|anthracene|中间体
+菲|phenanthrene|中间体
+芘|pyrene|中间体
+对苯二酚|hydroquinone|中间体
+邻苯二酚|catechol|中间体
+间苯二酚|resorcinol|中间体
+对苯醌|1,4-benzoquinone|中间体
+2,4-二硝基苯酚|2,4-dinitrophenol|中间体
+苦味酸|picric acid|中间体
+邻苯二甲酸|phthalic acid|中间体
+对苯二甲酸|terephthalic acid|中间体
+间苯二甲酸|isophthalic acid|中间体
+邻苯二甲酸酐|phthalic anhydride|中间体
+马来酸|maleic acid|中间体
+马来酸酐|maleic anhydride|中间体
+富马酸|fumaric acid|中间体
+丁二酸|succinic acid|中间体
+丙二酸|malonic acid|中间体
+戊二酸|glutaric acid|中间体
+己二酸|adipic acid|中间体
+乳酸|lactic acid|中间体
+柠檬酸|citric acid|中间体
+苹果酸|malic acid|中间体
+酒石酸|tartaric acid|中间体
+草酸|oxalic acid|中间体
+丁酸|butyric acid|中间体
+己酸|hexanoic acid|中间体
+丙烯酸|acrylic acid|中间体
+甲基丙烯酸|methacrylic acid|中间体
+硬脂酸|stearic acid|中间体
+棕榈酸|palmitic acid|中间体
+油酸|oleic acid|中间体
+亚油酸|linoleic acid|中间体
+氯乙酸|chloroacetic acid|中间体
+苯磺酸|benzenesulfonic acid|中间体
+肉桂酸|cinnamic acid|中间体
+水杨酸甲酯|methyl salicylate|中间体
+苯甲酸乙酯|ethyl benzoate|中间体
+香豆素|coumarin|中间体
+樟脑|camphor|中间体
+薄荷醇|menthol|中间体
+麝香草酚|thymol|中间体
+丁香酚|eugenol|中间体
+茴香脑|anethole|中间体
+柠檬醛|citral|中间体
+甲胺|methylamine|中间体
+二甲胺|dimethylamine|中间体
+三甲胺|trimethylamine|中间体
+乙胺|ethylamine|中间体
+二乙胺|diethylamine|中间体
+正丁胺|butylamine|中间体
+叔丁胺|tert-butylamine|中间体
+二苯胺|diphenylamine|中间体
+三苯胺|triphenylamine|中间体
+乙二胺|ethylenediamine|中间体
+己二胺|hexamethylenediamine|中间体
+N,N-二甲基苯胺|N,N-dimethylaniline|中间体
+苄胺|benzylamine|中间体
+乙醇胺|ethanolamine|中间体
+二乙醇胺|diethanolamine|中间体
+三乙醇胺|triethanolamine|中间体
+二乙胺盐酸盐|diethylamine hydrochloride|中间体
+乙硫醇|ethanethiol|中间体
+甲硫醇|methanethiol|中间体
+二甲基硫醚|dimethyl sulfide|中间体
+二甲基二硫醚|dimethyl disulfide|中间体
+乙酰丙酮|acetylacetone|中间体
+乙酰乙酸乙酯|ethyl acetoacetate|中间体
+丙二酸二乙酯|diethyl malonate|中间体
+氰基乙酸乙酯|ethyl cyanoacetate|中间体
+三苯基氯甲烷|triphenylmethyl chloride|中间体
+N-羟基琥珀酰亚胺|N-hydroxysuccinimide|中间体
+三硝基甲苯|2,4,6-trinitrotoluene|中间体
+四乙基铅|tetraethyllead|中间体
+双酚A|bisphenol A|中间体
+环氧氯丙烷|epichlorohydrin|中间体
+三聚氰胺|melamine|中间体
+氯乙烯|vinyl chloride|中间体
+丙烯腈|acrylonitrile|中间体
+甲基丙烯酸甲酯|methyl methacrylate|中间体
+醋酸乙烯酯|vinyl acetate|中间体
+己内酰胺|caprolactam|中间体
+尿素|urea|中间体
+硫脲|thiourea|中间体
+肌酐|creatinine|中间体
+尿酸|uric acid|中间体
+# ============ 常见杂环 ============
+吡咯|pyrrole|杂环
+吡咯烷|pyrrolidine|杂环
+呋喃|furan|杂环
+噻吩|thiophene|杂环
+哌啶|piperidine|杂环
+吗啉|morpholine|杂环
+哌嗪|piperazine|杂环
+吡唑|pyrazole|杂环
+噁唑|oxazole|杂环
+异噁唑|isoxazole|杂环
+噻唑|thiazole|杂环
+异噻唑|isothiazole|杂环
+1,2,4-三唑|1,2,4-triazole|杂环
+四氮唑|1H-tetrazole|杂环
+吡嗪|pyrazine|杂环
+嘧啶|pyrimidine|杂环
+哒嗪|pyridazine|杂环
+1,3,5-三嗪|1,3,5-triazine|杂环
+喹啉|quinoline|杂环
+异喹啉|isoquinoline|杂环
+喹喔啉|quinoxaline|杂环
+吲哚|indole|杂环
+吲唑|indazole|杂环
+吖啶|acridine|杂环
+咔唑|carbazole|杂环
+苯并呋喃|benzofuran|杂环
+苯并噻吩|benzothiophene|杂环
+苯并咪唑|benzimidazole|杂环
+苯并噻唑|benzothiazole|杂环
+苯并噁唑|benzoxazole|杂环
+嘌呤|purine|杂环
+吡啶氮氧化物|pyridine N-oxide|杂环
+环氧乙烷|ethylene oxide|杂环
+环氧丙烷|propylene oxide|杂环
+氧杂环丁烷|oxetane|杂环
+氮杂环丙烷|aziridine|杂环
+氮杂环丁烷|azetidine|杂环
+# ============ 糖类氨基酸生化 ============
+葡萄糖|glucose|生化
+果糖|fructose|生化
+蔗糖|sucrose|生化
+麦芽糖|maltose|生化
+乳糖|lactose|生化
+半乳糖|galactose|生化
+核糖|ribose|生化
+脱氧核糖|deoxyribose|生化
+木糖|xylose|生化
+甘露糖|mannose|生化
+甘氨酸|glycine|生化
+丙氨酸|alanine|生化
+缬氨酸|valine|生化
+亮氨酸|leucine|生化
+异亮氨酸|isoleucine|生化
+脯氨酸|proline|生化
+苯丙氨酸|phenylalanine|生化
+色氨酸|tryptophan|生化
+甲硫氨酸|methionine|生化
+苏氨酸|threonine|生化
+半胱氨酸|cysteine|生化
+酪氨酸|tyrosine|生化
+天冬酰胺|asparagine|生化
+谷氨酰胺|glutamine|生化
+天冬氨酸|aspartic acid|生化
+谷氨酸|glutamic acid|生化
+赖氨酸|lysine|生化
+精氨酸|arginine|生化
+组氨酸|histidine|生化
+丝氨酸|serine|生化
+腺嘌呤|adenine|生化
+鸟嘌呤|guanine|生化
+胞嘧啶|cytosine|生化
+胸腺嘧啶|thymine|生化
+尿嘧啶|uracil|生化
+腺苷|adenosine|生化
+腺苷三磷酸|adenosine triphosphate|生化
+单磷酸腺苷|adenosine monophosphate|生化
+胸苷|thymidine|生化
+# ============ 染料指示剂 ============
+甲基橙|methyl orange|指示剂
+甲基红|methyl red|指示剂
+酚酞|phenolphthalein|指示剂
+溴甲酚绿|bromocresol green|指示剂
+溴百里酚蓝|bromothymol blue|指示剂
+亚甲基蓝|methylene blue|指示剂
+孔雀石绿|malachite green|指示剂
+罗丹明B|rhodamine B|指示剂
+荧光素|fluorescein|指示剂
+结晶紫|crystal violet|指示剂
+刚果红|congo red|指示剂

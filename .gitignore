@@ -1,0 +1,60 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# ---- 运行环境（体积大，不随源码分发；用 tools/requirements/ 复现）----
+tools/python311/
+tools/venv/
+tools/venv-retro/
+tools/venv-vision/
+tools/venv-forward/
+tools/venv-conditions/
+pyvenv.cfg
+
+# ---- 模型与数据（体积大，来源见 README）----
+data/
+
+# ---- Node / Electron ----
+node_modules/
+shell/dist/
+Retron-dist/
+Retron/
+
+# ---- 运行时产物 ----
+logs/
+web/runtime/
+tools/tmp/
+*.log
+
+# ---- 一次性备份 ----
+*.bak
+*_backup/
+*_cu_backup/
+
+# ---- 编辑器 / 系统 ----
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+Desktop.ini
+.DS_Store

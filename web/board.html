@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>画板</title>
+<link rel="stylesheet" href="./ketcher/ketcher-app.css">
+<style>
+  html, body { height: 100%; margin: 0; padding: 0; background: #ffffff; }
+  #ketcher-root { position: absolute; inset: 0; }
+  #loading {
+    position: absolute; inset: 0; z-index: 5;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 14px; color: #8a93a6; background: #141821;
+  }
+  #status {
+    position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
+    z-index: 20; max-width: 84%;
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 13px; line-height: 1.55;
+    background: rgba(20, 24, 33, .93); color: #e9ecf4;
+    border: 1px solid rgba(255, 255, 255, .15);
+    border-radius: 10px; padding: 8px 16px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, .35);
+    display: none; text-align: center;
+  }
+  #status.show { display: block; }
+  #status.ok { border-color: rgba(74, 222, 128, .55); }
+  #status.err { border-color: rgba(248, 113, 113, .55); }
+
+  /* 已导入步骤与条件 记录条 */
+  #steplog {
+    position: absolute; left: 12px; bottom: 12px; z-index: 18;
+    width: min(440px, 46%);
+    max-height: 42%;
+    display: none;
+    flex-direction: column;
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: rgba(20, 24, 33, .94);
+    border: 1px solid rgba(255, 255, 255, .15);
+    border-radius: 12px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, .38);
+    overflow: hidden;
+  }
+  #steplog.show { display: flex; }
+  #steplog .head {
+    flex: 0 0 auto; display: flex; align-items: center; gap: 8px;
+    padding: 7px 12px; font-size: 12.5px; color: #dbe9ff;
+    background: rgba(110, 168, 254, .13);
+    border-bottom: 1px solid rgba(255, 255, 255, .08);
+    user-select: none;
+  }
+  #steplog .head .cnt { color: #9fb4d8; font-size: 11.5px; }
+  #steplog .head .sp { flex: 1; }
+  #steplog .head .mini {
+    font-size: 11px; color: #8fb4ee; border: 1px solid rgba(110, 168, 254, .32);
+    border-radius: 7px; padding: 1px 8px; cursor: pointer;
+  }
+  #steplog .head .mini:hover { background: rgba(110, 168, 254, .18); }
+  #steplog .body { flex: 1; min-height: 0; overflow-y: auto; padding: 8px 12px; }
+  #steplog .body::-webkit-scrollbar { width: 7px; }
+  #steplog .body::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 7px; }
+  #steplog .item {
+    font-size: 11.5px; line-height: 1.6; color: #cdd6e4;
+    padding: 5px 0; border-bottom: 1px dashed rgba(255, 255, 255, .09);
+    word-break: break-all;
+  }
+  #steplog .item:last-child { border-bottom: 0; }
+  #steplog .item b { color: #9fc2ff; font-weight: 600; }
+  #steplog .item .cond { color: #8fe0ae; }
+  #steplog .item .cond.wait { color: #d8c07a; }
+  #steplog .item .cond.none { color: #8a93a6; }
+</style>
+</head>
+<body>
+<div id="ketcher-root"></div>
+<div id="loading">正在加载画板…</div>
+<div id="status"></div>
+<div id="steplog">
+  <div class="head" id="steplog-head">
+    <span>已导入画板的步骤</span><span class="cnt" id="steplog-cnt">0</span>
+    <span class="sp"></span>
+    <span class="mini" id="steplog-clear">清空记录</span>
+    <span class="mini" id="steplog-fold">收起</span>
+  </div>
+  <div class="body" id="steplog-body"></div>
+</div>
+<script src="./ketcher/ketcher-zh2.js"></script>
+<script>
+(function () {
+  // ketcher-zh2.js（中文版）初始化完成时派发 ketcher-ready 事件，并挂载 window.ketcher
+  function boardReady() {
+    var l = document.getElementById('loading');
+    if (l && l.parentNode) l.parentNode.removeChild(l);
+    window.__boardReady = true;
+  }
+  document.addEventListener('ketcher-ready', boardReady);
+  if (window.__ketcherReady && window.ketcher) boardReady();
+
+  var statusEl = document.getElementById('status');
+  var statusTimer = null;
+
+  function setStatus(text, cls, autoHideMs) {
+    statusEl.textContent = text;
+    statusEl.className = 'show' + (cls ? ' ' + cls : '');
+    if (statusTimer) { clearTimeout(statusTimer); statusTimer = null; }
+    if (autoHideMs) {
+      statusTimer = setTimeout(function () { statusEl.className = ''; }, autoHideMs);
+    }
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
+  // ================= 已导入步骤与条件 记录条 =================
+  var stepLog = [];
+
+  function renderStepLog() {
+    var box = document.getElementById('steplog');
+    var body = document.getElementById('steplog-body');
+    var cnt = document.getElementById('steplog-cnt');
+    cnt.textContent = String(stepLog.length);
+    if (!stepLog.length) { box.className = ''; body.innerHTML = ''; return; }
+    box.className = 'show';
+    var html = '';
+    for (var i = 0; i < stepLog.length; i++) {
+      var it = stepLog[i];
+      var c = '';
+      if (it.noCond) {
+        c = '';
+      } else if (it.condition === null || it.condition === undefined) {
+        c = '<span class="cond wait">条件获取中…</span>';
+      } else if (it.condition === '') {
+        c = '<span class="cond none">（未获取到条件）</span>';
+      } else {
+        c = '<span class="cond">条件：' + escapeHtml(it.condition) + '</span>';
+      }
+      html += '<div class="item"><b>' + escapeHtml(it.label) + '</b> ' +
+        escapeHtml(it.rxn) + '<br>' + c + '</div>';
+    }
+    body.innerHTML = html;
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function addStepLog(item) {
+    var key = item.key || (item.label + '|' + item.smiles);
+    for (var i = 0; i < stepLog.length; i++) {
+      if (stepLog[i].key === key) {
+        if (item.condition) { stepLog[i].condition = item.condition; }
+        renderStepLog();
+        return;
+      }
+    }
+    stepLog.push({
+      key: key,
+      label: item.label || '',
+      rxn: item.smiles || '',
+      noCond: !!item.noCond,
+      condition: (item.condition === undefined ? null : item.condition)
+    });
+    renderStepLog();
+  }
+
+  document.getElementById('steplog-head').addEventListener('click', function (e) {
+    var t = e.target;
+    if (t && t.id === 'steplog-clear') { stepLog = []; renderStepLog(); return; }
+    if (t && t.id === 'steplog-fold') {
+      var body = document.getElementById('steplog-body');
+      var folded = body.style.display === 'none';
+      body.style.display = folded ? '' : 'none';
+      t.textContent = folded ? '收起' : '展开';
+    }
+  });
+
+  // ================= 供主页面调用：追加画到画板 =================
+  window.__hxAppendItems = function (items) {
+    if (!window.ketcher) { return Promise.reject(new Error('画板未就绪')); }
+    var list = (items || []).filter(function (x) { return x && x.smiles; });
+    if (!list.length) { return Promise.resolve('empty'); }
+    var chain = Promise.resolve();
+    list.forEach(function (item) {
+      chain = chain.then(function () {
+        return Promise.resolve(window.ketcher.addFragment(item.smiles))
+          .catch(function () {
+            if (item.fallback) {
+              return Promise.resolve(window.ketcher.addFragment(item.fallback))
+                .catch(function (e2) { throw new Error('结构无法画上画板：' + (e2 && e2.message ? e2.message : e2)); });
+            }
+            throw new Error('结构无法画上画板：' + item.smiles);
+          });
+      });
+    });
+    return chain.then(function () {
+      list.forEach(function (item) { addStepLog(item); });
+      var note = list.length > 1
+        ? '已将 ' + list.length + ' 个步骤追加到画板（原有内容保留，左下角可看每步条件）'
+        : ((list[0].label || '结构') + ' 已追加到画板（原有内容保留，左下角可看条件）');
+      setStatus(note, 'ok', 6000);
+      return 'ok';
+    }).catch(function (e) {
+      setStatus('画到画板失败：' + (e && e.message ? e.message : e), 'err', 7000);
+      throw e;
+    });
+  };
+
+  window.__hxSetCondition = function (key, condText) {
+    for (var i = 0; i < stepLog.length; i++) {
+      if (stepLog[i].key === key) {
+        stepLog[i].condition = (condText && String(condText).length) ? String(condText) : '';
+        renderStepLog();
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // ================= 智能粘贴：图片 -> 识别 -> 追加到画板 =================
+  var busy = false;
+
+  document.addEventListener('paste', function (e) {
+    var cd = e.clipboardData;
+    if (!cd) return;
+
+    var imgFile = null;
+    var items = cd.items || [];
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].kind === 'file' && items[i].type && items[i].type.indexOf('image/') === 0) {
+        imgFile = items[i].getAsFile();
+        break;
+      }
+    }
+    if (!imgFile) return;   // 文本粘贴交给 Ketcher 自带处理
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (busy) { setStatus('上一次识别还在进行中，请稍候…', 'err', 3000); return; }
+    if (!window.ketcher) { setStatus('画板还没加载完，请等几秒再试', 'err', 3000); return; }
+
+    busy = true;
+    setStatus('收到图片，正在识别分子…（首次约 10~30 秒）');
+
+    var fr = new FileReader();
+    fr.onload = function () {
+      fetch('/api/ocr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: String(fr.result || '') })
+      }).then(function (r) { return r.json(); }).then(function (j) {
+        busy = false;
+        if (!j.ok) {
+          setStatus('识别失败：' + (j.error || '未知错误') +
+            '（建议换一张更清晰的、单个分子的截图）', 'err', 9000);
+          return;
+        }
+        var smiles = String(j.smiles || '').trim();
+        var parts = smiles.split('.').filter(function (x) { return x.trim(); });
+        Promise.resolve(window.ketcher.addFragment(smiles)).then(function () {
+          var note = parts.length > 1
+            ? '识别成功：' + parts.length + ' 个组分已追加到画板（原有内容保留），可自行整理'
+            : '识别成功：' + smiles + '（已追加到画板，原有内容保留）';
+          setStatus(note, 'ok', 7000);
+        }).catch(function (err2) {
+          setStatus('画到画板失败：' + (err2 && err2.message ? err2.message : err2), 'err', 6000);
+        });
+      }).catch(function (err) {
+        busy = false;
+        setStatus('识别请求失败：' + err, 'err', 6000);
+      });
+    };
+    fr.readAsDataURL(imgFile);
+  }, true);
+})();
+</script>
+</body>
+</html>

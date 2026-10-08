@@ -1,0 +1,5 @@
+numpy==2.4.6
+pillow==12.3.0
+py2opsin==1.2.0
+rdkit==2026.3.6
+websocket-client==1.9.2
