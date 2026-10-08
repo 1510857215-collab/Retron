@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>hx 自测（不对外）</title>
+<title>Retron 自检（不对外）</title>
 </head>
 <body>
 <div id="R" style="font-family:Consolas,monospace;font-size:13px;white-space:pre-wrap;padding:8px;">PENDING</div>
@@ -56,7 +56,7 @@
 
   // ---------- B：图片粘贴 -> OCR ----------
   function testB() {
-    fetch('./runtime/selftest_molecule.png')
+    fetch('./_selftest/selftest_molecule.png')
       .then(function (r) { return r.blob(); })
       .then(function (blob) {
         var file = new File([blob], 't.png', { type: 'image/png' });

@@ -86,7 +86,7 @@ def main():
 
         # ---------- T2: 画板粘贴图片 ----------
         print("T2 画板粘贴图片测试（投递到画板区域）…")
-        r = ev("(function(){return fetch('./runtime/selftest_molecule.png')"
+        r = ev("(function(){return fetch('./_selftest/selftest_molecule.png')"
                ".then(function(r){return r.blob();}).then(function(b){"
                "var f=new File([b],'t.png',{type:'image/png'});"
                "var dt=new DataTransfer();dt.items.add(f);"
