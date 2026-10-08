@@ -58,3 +58,6 @@ tools/tmp/
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# 第三方项目副本（MolScribe 源码留档，体积大且非本项目代码）
+tools/archived-scripts/vision_molscribe_src/

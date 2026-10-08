@@ -1,176 +1,147 @@
-# Retron · 有机合成工作台
+# Retron
 
-> 一个**完全离线运行**的有机合成桌面工具 —— 在自己的电脑上画结构式、做结构/名称互转、倒推合成路线、补全反应条件、预测反应产物。
->
-> **断网可用 · 数据不出本机 · 永久免费**
+**A fully offline organic synthesis workbench for Windows.**
 
----
+Draw chemical structures, convert between names and structures, plan retrosynthetic routes, recommend reaction conditions, and predict reaction products — all running locally on your own machine.
 
-## 为什么做这个
+**No internet connection. No subscription. Your structures never leave your computer.**
 
-做有机合成时经常要开一堆在线工具：画结构的、查名字的、算分子式的、设计路线的 —— 大多数要么收费订阅，要么要求把结构上传到别人的服务器。
+[English](README.md) | [简体中文](README.zh-CN.md)
 
-Retron 把这些事情全都搬到本机：装上就能用，拔掉网线照样跑，画的结构、查的分子、设计的路线**一个字节都不会离开你的电脑**。
+![Retron overview](docs/screenshots/01-overview.png)
 
 ---
 
-## 功能一览
+## Why this exists
 
-| 功能 | 你能做什么 |
-|---|---|
-| **画板** | 中文界面的结构式/反应式编辑器，支持从图片粘贴识别、从其他化学软件粘贴结构 |
-| **结构 ⇄ 名称互转** | 输入 `阿司匹林` / `aspirin` / `CC(=O)Oc1ccccc1C(=O)O` 中任意一种，输出另外几种（含分子式、InChI）<br>词典覆盖 **近 20 万化合物、320 多万条别名俗名** |
-| **逆合成路线设计** | 给一个目标分子，自动倒推多条合成路线（正向合成顺序排列，每步标注原料是否可购买）<br>支持指定起始原料：从「我手里有的原料 A」出发设计到目标 B 的路线 |
-| **反应条件补全** | 给路线每一步补上**试剂、溶剂、催化剂、温度**建议（68 万条文献先例 + 命名反应规则） |
-| **正向反应预测** | 给反应物，预测最可能生成的产物（ReactionT5v2，USPTO 数据微调） |
-| **图片识别结构** | 把论文/软件里的结构式截图直接粘进来，自动识别成可编辑的分子（MolScribe 主力 + DECIMER 兜底） |
-| **一键上画板** | 逆合成结果可以逐步或整条画到画板上对照，反应条件同步显示，已画内容不会被覆盖 |
+Planning a synthesis usually means juggling several online tools: one to draw a structure, another to look up a name, another to plan a route — and most of them either charge a subscription or want your structures uploaded to their servers.
+
+Retron puts all of it into one self-contained desktop application. Install it, unplug the network cable, and everything still works. The compounds you draw, look up, and plan stay on your disk.
+
+> The application interface is in **Simplified Chinese**. Runs on Windows 10/11 (64-bit).
 
 ---
 
-## 快速开始
+## Features
 
-### 方式一：用打包好的完整版（推荐）
+### Structure drawing
 
-1. 从 [Releases](../../releases) 下载完整版压缩包
-2. 解压到任意目录（路径含中文也没问题）
-3. 双击 `Retron/Retron.exe`
+A full chemical editor (Ketcher, Chinese interface) for drawing molecules and reactions. Paste a screenshot of a structure straight onto the canvas and it gets recognized and drawn for you.
 
-首次启动会自动完成环境适配与桌面快捷方式创建。**不需要安装 Python，不需要联网。**
+### Name ⇄ structure conversion
 
-### 方式二：从源码搭建
+Type any of `布洛芬` / `ibuprofen` / `CC(C)Cc1ccc(C(C)C(=O)O)cc1` and get the others back — including molecular formula and InChI.
 
-前置：Windows 10/11 x64、Python 3.11（[python.org](https://www.python.org/downloads/)）
+The bundled dictionary covers **~200,000 compounds** and **over 3.2 million aliases** (trade names, abbreviations such as THF / DMSO, CAS numbers), so everyday names work, not just IUPAC.
 
-```bash
-git clone <this-repo>
-cd Retron-Source
+![Conversion](docs/screenshots/02-convert.png)
 
-# 1) 建基准解释器与五套环境
-#    把 Python 3.11 放到 tools/python311/
-tools/python311/python.exe -m venv tools/venv
-tools/python311/python.exe -m venv tools/venv-retro
-#    ... 其余三套同理（venv-vision / venv-forward / venv-conditions）
+### Retrosynthesis planning
 
-# 2) 按清单装依赖
-tools/venv/Scripts/pip.exe install -r tools/requirements/requirements-base.txt
-#    ... 其余四套同理
+Give a target molecule and get multiple retrosynthetic routes, ordered in forward-synthesis direction (step 1 = the first reaction you would actually run). Each step is annotated with whether its starting materials are commercially available.
 
-# 3) 准备模型与数据（见下方「模型与数据来源」）
+You can also pin a starting material you already have — *"plan a route from A to B."*
 
-# 4) 启动外壳
-cd shell && npm install && npm start
-```
+![Retrosynthesis](docs/screenshots/03-retrosynthesis.png)
 
-> 各环境的依赖清单在 `tools/requirements/` 下，按环境分别导出，可直接复现。
+### Reaction condition recommendation
 
----
+Every step can be completed with suggested **reagents, solvents, catalysts and temperature**, derived from 680,000 literature precedents plus named-reaction rules.
 
-## 技术架构
+Routes can be sent to the drawing canvas step by step or all at once; existing content on the canvas is never cleared.
 
-程序分成**一个外壳 + 一个本地服务 + 五个独立引擎**：
+### Product prediction
 
-```
-桌面外壳（Electron）
-   └─ 静默拉起本地服务（127.0.0.1:8765，无命令行窗口）
-         ├─ 转换引擎   RDKit + 自建词典 + OPSIN      → tools/venv
-         ├─ 逆合成引擎 AiZynthFinder (MCTS)          → tools/venv-retro
-         ├─ 识图引擎   MolScribe / DECIMER           → tools/venv-vision
-         ├─ 正向预测   ReactionT5v2                  → tools/venv-forward
-         └─ 条件推荐   DRFP 指纹 + 先例检索          → tools/venv-conditions
-```
+Given reactants (optionally with reagents), predict the most likely products ranked by probability. Any candidate can go straight to the canvas or be set as a retrosynthesis target.
 
-**为什么分五个环境**：这几个引擎的依赖互相冲突（不同版本的 PyTorch、TensorFlow、OpenNMT），混在一起装不通。分开后各自独立、互不干扰，某个引擎坏了也不影响其他功能。
+![Prediction](docs/screenshots/04-prediction.png)
 
-**为什么用本地 HTTP 服务**：界面（网页技术）和引擎（Python）通过本机回环地址通信，不经过网络。这样界面能做得漂亮，引擎能自由用 Python 生态，两边松耦合。
+### Structure recognition from images
+
+Paste a screenshot from a paper or another chemistry application and it is recognized into an editable structure (MolScribe, with DECIMER as fallback). Copy-paste of MOL blocks from other software is supported too.
 
 ---
 
-## 目录结构
+## Architecture
 
 ```
-Retron-Source/
-├── app/
-│   └── server.py              本地服务：接口路由 + 引擎进程管理
-├── engine/                    五个引擎（各自独立）
-│   ├── chemistry/             结构/名称/分子式互转
-│   ├── retro/                 逆合成路线设计
-│   ├── vision/                图片识别结构
-│   ├── forward/               正向反应预测
-│   └── conditions/            反应条件推荐
-├── web/                       界面
-│   ├── index.html             主界面（三标签页）
-│   ├── board.html             画板页
-│   └── ketcher/               化学画板（Ketcher，已汉化）
-├── shell/                     Electron 桌面外壳
-│   ├── main.js                启动/退出/环境自愈
-│   └── package.json
-├── tools/
-│   ├── repair_env.py          换电脑后自动修环境路径
-│   ├── check_runtime_deps.py  运行环境依赖体检
-│   ├── requirements/          五套环境的依赖清单
-│   └── archived-scripts/      开发期测试脚本（CDP 端到端验证等）
-├── 使用说明.md                给使用者的说明
-└── 蓝图.md                    技术设计文档
+Electron desktop shell
+   └─ silently starts a local service on 127.0.0.1:8765 (no console window)
+         ├─ Conversion      RDKit + bundled dictionary + OPSIN
+         ├─ Retrosynthesis  AiZynthFinder (MCTS)
+         ├─ Recognition     MolScribe / DECIMER
+         ├─ Prediction      ReactionT5v2
+         └─ Conditions      DRFP fingerprints + precedent retrieval
 ```
 
-运行期还需要（**不在仓库里**，体积原因）：
+The five engines live in **five isolated Python environments**. Their dependencies conflict (different PyTorch, TensorFlow and OpenNMT versions) and cannot share one environment — keeping them apart also means a broken engine never takes down the others.
+
+The interface and the engines talk over a loopback HTTP socket that never leaves the machine. Closing the window shuts the engines down cleanly, leaving no background processes.
+
+---
+
+## Getting the full application
+
+The complete offline build (about 11 GB: compound database, dictionary, four AI models, five Python environments) is **not** stored in this repository — those are large binaries from upstream sources.
+
+See [`docs/BUILD.md`](docs/BUILD.md) for how to assemble a ready-to-run build from this source.
+
+**Requirements:** Windows 10/11 (64-bit). No Python, Java or runtime packages need to be installed beforehand, and no administrator rights are required.
+
+> Moving it to another computer? Copy the **whole folder** and run `Retron\Retron.exe`. On first start it repairs its own environment paths, creates a desktop shortcut, and runs offline from then on.
+
+---
+
+## Repository layout
 
 ```
-data/       模型与数据（约 4.8 GB）
-tools/      五套 Python 环境 + 基准解释器（约 8 GB）
+app/                 Local service: routing + engine process management
+engine/              The five engines
+  chemistry/         structure / name / formula conversion
+  retro/             retrosynthetic route search
+  vision/            structure recognition from images
+  forward/           reaction product prediction
+  conditions/        reaction condition recommendation
+web/                 Interface (three tabs) and the drawing canvas
+shell/               Electron desktop shell
+tools/               Maintenance scripts + per-environment dependency snapshots
+  repair_env.py            rewrites environment paths after moving the folder
+  check_runtime_deps.py    audits runtime library dependencies
+  make_dist.py             produces a distributable build
+  requirements/            dependency snapshots for the five environments
+docs/                Screenshots and build notes
 ```
 
 ---
 
-## 用到的开源项目
+## Open source components
 
-| 组件 | 用途 | 许可证 |
+Retron would not exist without these projects:
+
+| Component | Role | License |
 |---|---|---|
-| [Ketcher](https://github.com/epam/ketcher) | 化学画板 | Apache-2.0 |
-| [RDKit](https://www.rdkit.org/) | 化学结构计算 | BSD-3-Clause |
-| [AiZynthFinder](https://github.com/MolecularAI/aizynthfinder) | 逆合成搜索 | MIT |
-| [OPSIN](https://github.com/dan2097/opsin) | 英文系统名 → 结构 | MIT |
-| [MolScribe](https://github.com/thomas0809/MolScribe) | 结构式图片识别 | MIT |
-| [DECIMER](https://github.com/Kohulan/DECIMER-Image_Transformer) | 结构式图片识别（兜底） | MIT |
-| [ReactionT5v2](https://huggingface.co/sagawa/ReactionT5v2-forward-USPTO_MIT) | 正向反应预测 | MIT |
-| [Electron](https://www.electronjs.org/) | 桌面外壳 | MIT |
+| [Ketcher](https://github.com/epam/ketcher) | Chemical structure editor | Apache-2.0 |
+| [RDKit](https://www.rdkit.org/) | Cheminformatics toolkit | BSD-3-Clause |
+| [AiZynthFinder](https://github.com/MolecularAI/aizynthfinder) | Retrosynthesis search | MIT |
+| [OPSIN](https://github.com/dan2097/opsin) | Systematic name parsing | MIT |
+| [MolScribe](https://github.com/thomas0809/MolScribe) | Structure recognition | MIT |
+| [DECIMER](https://github.com/Kohulan/DECIMER-Image_Transformer) | Structure recognition | MIT |
+| [ReactionT5v2](https://huggingface.co/sagawa/ReactionT5v2-forward-USPTO_MIT) | Reaction prediction | MIT |
+| [Electron](https://www.electronjs.org/) | Desktop shell | MIT |
+
+Data: AiZynthFinder's Zinc stock (17.4M purchasable compounds), USPTO_Condition (680k precedents), PubChem / Wikidata / drug directories (dictionary).
 
 ---
 
-## 模型与数据来源
+## Limitations
 
-所有模型与数据均自公开来源下载后**落盘本地**，运行期零联网：
-
-| 数据 | 来源 | 本地位置 |
-|---|---|---|
-| 可购买化合物库（1742 万条） | AiZynthFinder 提供的 Zinc 库 | `data/retro/zinc_stock.hdf5` |
-| 逆合成模型（USPTO 训练） | AiZynthFinder 官方权重 | `data/retro/*.onnx` |
-| 正向预测模型 | `sagawa/ReactionT5v2-forward-USPTO_MIT` (HuggingFace) | `data/forward/模型/` |
-| 结构识别模型 | MolScribe / DECIMER 官方权重 | `data/vision/models`、`data/vision/pystow` |
-| 反应条件先例（68 万条） | USPTO_Condition 数据集 | `data/conditions/` |
-| 化合物词典（20 万化合物 / 320 万别名） | PubChem / Wikidata / 药品目录 | `data/中文名字典.sqlite` |
+- **Windows only.** The engines are cross-platform Python, but the desktop shell and the path-repair logic target Windows.
+- **First retrosynthesis run is slow** — about a minute to load the compound database and models; later runs take roughly 20 seconds.
+- **Image recognition** is accurate on printed structures; hand-drawn sketches and complex stereochemistry may need manual correction.
+- Routes and predicted products are **suggestions derived from literature data** — experimental feasibility is up to you.
 
 ---
 
-## 已知限制
+## License
 
-- **仅支持 Windows x64**。核心是 Python 引擎（跨平台），但外壳与路径自愈逻辑按 Windows 编写。
-- **逆合成首次启动较慢**（要加载 "可购买化合物库" 与模型，约 1 分钟），之后每次约 20 秒。
-- **图片识别对印刷体准确率高**，手绘草稿和复杂立体构型会有偏差，识别后建议人工核对。
-- **与其他化学软件之间**：支持"复制结构 → 本页面粘贴"（带文本直接用，纯图片走识别）；各家私有格式不公开，无法做到 Ctrl+C/Ctrl+V 一键无损直通。
-- 路线与产物预测是**基于文献数据的建议**，实际可行性请以实验为准。
-
----
-
-## 许可证
-
-本项目代码采用 [MIT 许可证](LICENSE)。
-
-`web/ketcher/` 下为 Ketcher 的构建产物，遵循其 Apache-2.0 许可证；各引擎调用的第三方开源组件版权归各自作者所有（见上表）。
-
----
-
-## 致谢
-
-没有这些开源项目，这个工具不可能存在：AiZynthFinder（阿斯利康）、RDKit、Ketcher（EPAM）、OPSIN、MolScribe、DECIMER、ReactionT5v2、Electron。
+[MIT](LICENSE). Third-party components remain under their respective licenses (see above).
