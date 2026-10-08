@@ -142,4 +142,4 @@ docs/                截图与构建说明
 
 ## 许可证
 
-[MIT](LICENSE)。第三方组件遵循各自许可证（见上表）。
+[MIT](LICENSE) —— 随包分发的第三方组件、构建产物与数据来源见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)。

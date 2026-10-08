@@ -144,4 +144,4 @@ Data: AiZynthFinder's Zinc stock (17.4M purchasable compounds), USPTO_Condition 
 
 ## License
 
-[MIT](LICENSE). Third-party components remain under their respective licenses (see above).
+[MIT](LICENSE) — see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for the bundled components, build artifacts and data sources.
