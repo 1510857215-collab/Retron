@@ -30,7 +30,12 @@ sentencepiece==0.2.2
 shellingham==1.5.4
 sympy==1.14.0
 tokenizers==0.23.2
-torch==2.14.1+cu130
+# ----------------------------------------------------------------
+# PyTorch 不列在此文件中：它需要独立的包索引。
+# PyPI 上只提供 CUDA 版（比 CPU 版大约 2.4GB），本项目实际使用 CPU 版。
+# 安装方式：
+#   pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu
+# ----------------------------------------------------------------
 tqdm==4.70.1
 transformers==5.19.0
 typer==0.27.3

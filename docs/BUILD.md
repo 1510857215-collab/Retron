@@ -84,9 +84,28 @@ tools\venv\Scripts\pip.exe install -r tools\requirements\requirements-base.txt
 
 Notes:
 
-- **Use the CPU build of PyTorch** (`--index-url https://download.pytorch.org/whl/cpu`). The CUDA build adds roughly 2.4 GB and provides no benefit here — inference is dominated by model loading, not computation. It also avoids requiring an NVIDIA GPU on the target machine.
-- `venv-vision` needs `timm==0.4.12` (MolScribe's vendored Swin implementation registers `swin_base`).
-- Some packages used by MolScribe need small local patches; keep them in the environment after installation.
+- **Install PyTorch separately, from its own index.** PyPI only carries the CUDA build (roughly 2.4 GB larger, and it expects an NVIDIA software stack). This project uses the CPU build:
+
+  ```bash
+  # for venv-forward
+  tools\python311\python.exe -m pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu
+
+  # for venv-vision (needs torchvision as well)
+  tools\python311\python.exe -m pip install torch==2.14.1 torchvision==0.29.1 --index-url https://download.pytorch.org/whl/cpu
+  ```
+
+  PyTorch is therefore **deliberately absent from the `requirements-*.txt` snapshots** — installing those files alone is not sufficient, and a plain `pip install torch` would silently pull the CUDA build instead.
+
+  Inference here is dominated by model loading rather than computation, so the CPU build is not a compromise — it also removes any dependency on an NVIDIA GPU on the target machine.
+- `venv-vision` pins `timm==0.4.12`: MolScribe's vendored Swin code registers `swin_base` at import time. This is an older release paired with a recent PyTorch, but **this is the exact combination the project was built and tested against**. If you widen it, re-run the recognition check described in [`tools/patches/README.md`](../tools/patches/README.md).
+- **Two packages need small runtime patches** before the recognition engine will import at all:
+
+  | Target | Why |
+  |---|---|
+  | MolScribe (2 files) | Written against albumentations 0.x; on 2.x its import chain breaks. Its vendored Swin module also fails to import under a modern `timm`. Neither path is used at inference time — they only have to import cleanly. |
+  | `torchtext` (3 files) | MolScribe's decoder reuses OpenNMT-py 2.2.0 modules, and `import onmt` transitively imports `torchtext`, which is discontinued and does not work with PyTorch 2.x. A stub package lets the import chain pass. |
+
+  Both are provided as drop-in files in [`tools/patches/`](../tools/patches/) — **without them the vision engine will not start**. The folder's README has the two copy commands and a verification step.
 
 ---
 
